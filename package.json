@@ -24,18 +24,21 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "latest",
     "@types/chrome": "latest",
-    "vite": "latest",
-    "vite-plugin-zip-pack": "latest",
+    "typescript": "latest",
     "git-cz": "latest",
     "npm-run-all2": "latest",
     "oxfmt": "latest",
-    "oxlint": "latest"
+    "oxlint": "latest",
+    "vite": "latest",
+    "vite-plugin-solid": "latest",
+    "vite-plugin-zip-pack": "latest"
   },
   "scripts": {
     "lint": "oxlint . --fix --ignore-path .gitignore",
     "fmt": "oxfmt . --write --ignore-path .gitignore",
     "check": "run-s lint fmt",
     "dev": "vite",
+    "preview": "vite preview",
     "git-add": "git add .",
     "git-commit": "git-cz",
     "git-push": "git push",
@@ -43,5 +46,8 @@
     "build-only": "vite build",
     "build": "run-s check build-only",
     "push": "run-s build && npm publish --access public"
+  },
+  "dependencies": {
+    "solid-js": "latest"
   }
 }
