@@ -1,0 +1,47 @@
+{
+  "name": "@senators/bifrost-crx",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Bifrost browser extension",
+  "keywords": [
+    "@senators/bifrost-crx",
+    "senators",
+    "bifrost",
+    "ogame"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/AhMisty/senators-bifrost-crx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AhMisty/senators-bifrost-crx"
+  },
+  "bugs": {
+    "url": "https://github.com/AhMisty/senators-bifrost-crx/issues",
+    "email": "AhMisty@outlook.com"
+  },
+  "author": "AhMisty",
+  "type": "module",
+  "devDependencies": {
+    "@crxjs/vite-plugin": "latest",
+    "@types/chrome": "latest",
+    "vite": "latest",
+    "vite-plugin-zip-pack": "latest",
+    "git-cz": "latest",
+    "npm-run-all2": "latest",
+    "oxfmt": "latest",
+    "oxlint": "latest"
+  },
+  "scripts": {
+    "lint": "oxlint . --fix --ignore-path .gitignore",
+    "fmt": "oxfmt . --write --ignore-path .gitignore",
+    "check": "run-s lint fmt",
+    "dev": "vite",
+    "git-add": "git add .",
+    "git-commit": "git-cz",
+    "git-push": "git push",
+    "git": "run-s check git-add git-commit git-push",
+    "build-only": "vite build",
+    "build": "run-s check build-only",
+    "push": "run-s build && npm publish --access public"
+  }
+}
