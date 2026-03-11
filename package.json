@@ -24,6 +24,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "latest",
     "@types/chrome": "latest",
+    "@types/node": "latest",
     "typescript": "latest",
     "git-cz": "latest",
     "npm-run-all2": "latest",
