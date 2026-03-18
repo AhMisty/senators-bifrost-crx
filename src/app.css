@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  --app-background-color: hsl(180 20% 4%);
+  --app-text-color: hsl(0 0% 93.33%);
+  --app-selection-text-color: hsl(180 20% 4%);
+  --app-selection-background-color: hsl(180 68.07% 53.33% / 0.88);
+  --app-scrollbar-thumb-color: rgb(34 120 214);
+  --app-font-family: 'Titillium Web', sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-scrollbar-thumb-color) transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--app-background-color);
+  color: var(--app-text-color);
+  font-family: var(--app-font-family);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  color: var(--app-selection-text-color);
+  background: var(--app-selection-background-color);
+}
