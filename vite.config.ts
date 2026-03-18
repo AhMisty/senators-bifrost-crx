@@ -3,7 +3,7 @@ import unocss from 'unocss/vite'
 import solid from 'vite-plugin-solid'
 import { crx } from '@crxjs/vite-plugin'
 import zip from 'vite-plugin-zip-pack'
-import manifest from './manifest.config.ts'
+import manifest from './manifest.config'
 import pkg from './package.json'
 
 const devServerHost = 'localhost'

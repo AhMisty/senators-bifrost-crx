@@ -23,8 +23,8 @@
   "type": "module",
   "devDependencies": {
     "@crxjs/vite-plugin": "latest",
-    "@types/node": "latest",
     "@types/chrome": "latest",
+    "@types/node": "latest",
     "git-cz": "latest",
     "npm-run-all2": "latest",
     "oxfmt": "latest",
@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@arwes/solid": "latest",
+    "@senators/bifrost": "latest",
     "@solidjs/router": "latest",
     "solid-js": "latest"
   }

@@ -5,7 +5,7 @@
     "suspicious": "warn",
     "style": "off",
     "pedantic": "off",
-    "perf": "warn",
+    "perf": "warn"
   },
   "rules": {
     "no-console": "warn",
@@ -16,11 +16,11 @@
     "no-duplicate-case": "warn",
     "no-dupe-keys": "warn",
     "eqeqeq": ["error", "always"],
-    "no-await-in-loop": "allow",
+    "no-await-in-loop": "allow"
   },
   "globals": {
     "fetch": "readonly",
     "defineProps": "readonly",
-    "chrome": "readonly",
-  },
+    "chrome": "readonly"
+  }
 }
