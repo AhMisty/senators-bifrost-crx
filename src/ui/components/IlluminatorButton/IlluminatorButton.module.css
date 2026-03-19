@@ -1,28 +1,28 @@
-.illuminator-button {
+.button {
   color: hsl(60 67.78% 64.71%);
   transition: color 200ms ease-out;
 }
 
-.illuminator-button:hover {
+.button:hover {
   color: hsl(60 90% 64.71%);
 }
 
-.illuminator-button:focus-visible {
+.button:focus-visible {
   outline: 1px dotted hsl(60 90% 64.71% / 0.8);
   outline-offset: 4px;
 }
 
-.illuminator-button__frame {
+.frame {
   opacity: 0.3;
   transition: opacity 200ms ease-out;
   filter: drop-shadow(0 0 0.5rem hsl(60 68.85% 47.84%));
 }
 
-.illuminator-button:hover .illuminator-button__frame {
+.button:hover .frame {
   opacity: 0.7;
 }
 
-.illuminator-button__glow {
+.glow {
   width: var(--illuminator-button-glow-size);
   height: var(--illuminator-button-glow-size);
   opacity: 0;
@@ -31,7 +31,7 @@
   will-change: transform, opacity;
 }
 
-.illuminator-button__content > svg {
+.content > svg {
   width: 1.25em;
   height: 1.25em;
   flex-shrink: 0;

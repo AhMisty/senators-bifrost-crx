@@ -1,4 +1,4 @@
-import './IlluminatorButton.css'
+import styles from './IlluminatorButton.module.css'
 
 import { splitProps, createSignal, onCleanup, onMount, type Component, type JSX } from 'solid-js'
 
@@ -109,10 +109,10 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
         buttonElement = element
       }}
       type={localProps.type ?? 'button'}
-      class={`illuminator-button relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[0.625rem] uppercase select-none md:text-[0.75rem] xl:text-[0.875rem] ${localProps.class ?? ''}`.trim()}
+      class={`${styles.button} relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[0.625rem] uppercase select-none md:text-[0.75rem] xl:text-[0.875rem] ${localProps.class ?? ''}`.trim()}
     >
       <svg
-        class="illuminator-button__frame pointer-events-none absolute inset-0 block h-full w-full"
+        class={`${styles.frame} pointer-events-none absolute inset-0 block h-full w-full`}
         aria-hidden="true"
         viewBox={`0 0 ${getFrameWidthPx()} ${getFrameHeightPx()}`}
         preserveAspectRatio="none"
@@ -155,14 +155,16 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
           ref={(element) => {
             glowElement = element
           }}
-          class="illuminator-button__glow pointer-events-none absolute left-0 top-0"
+          class={`${styles.glow} pointer-events-none absolute left-0 top-0`}
           style={{
             '--illuminator-button-glow-size': `${getGlowSizePx()}px`,
             background: `radial-gradient(closest-side, ${localProps.glowColor ?? defaultGlowColor}, transparent)`,
           }}
         />
       </div>
-      <div class="illuminator-button__content relative z-[1] flex items-center justify-center gap-1.5 px-3 text-center leading-[1.75rem] sm:gap-2 sm:px-4 sm:leading-[2rem]">
+      <div
+        class={`${styles.content} relative z-[1] flex items-center justify-center gap-1.5 px-3 text-center leading-[1.75rem] sm:gap-2 sm:px-4 sm:leading-[2rem]`}
+      >
         {localProps.children}
       </div>
     </button>

@@ -1,6 +1,6 @@
 import { type Component } from 'solid-js'
 
-import { IlluminatorButton } from '@/components/IlluminatorButton/IlluminatorButton'
+import { IlluminatorButton } from '@/ui/components/IlluminatorButton/IlluminatorButton'
 
 const OptionsDocumentIcon: Component = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

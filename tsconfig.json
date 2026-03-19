@@ -1,4 +1,10 @@
 {
+  "extends": "./tsconfig.base.json",
   "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "./src/ui" },
+    { "path": "./src/service" },
+    { "path": "./src/content" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

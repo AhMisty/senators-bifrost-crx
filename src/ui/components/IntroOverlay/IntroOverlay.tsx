@@ -1,4 +1,4 @@
-import './IntroOverlay.css'
+import styles from './IntroOverlay.module.css'
 
 import { createSignal, onCleanup, onMount, type Component } from 'solid-js'
 
@@ -26,22 +26,24 @@ type IntroOverlaySceneProps = {
 
 const IntroOverlayScene: Component<IntroOverlaySceneProps> = (props) => (
   <div
-    class="intro-overlay fixed inset-0 z-[2] min-h-screen overflow-hidden"
-    classList={{ 'intro-overlay--inactive': !props.isActive }}
+    class={`${styles.overlay} fixed inset-0 z-[2] min-h-screen overflow-hidden`}
+    classList={{ [styles.inactive]: !props.isActive }}
     style={{
       '--intro-start-delay': `${introStartDelayMs / 1000}s`,
       '--intro-overlay-transition-duration': `${introExitTransitionDurationMs}ms`,
     }}
   >
-    <div class="intro-overlay__scrim absolute inset-0" />
+    <div class={`${styles.scrim} absolute inset-0`} />
 
     <div class="relative z-[1] grid min-h-screen place-items-center p-[clamp(24px,5vw,56px)]">
-      <div class="intro-overlay__center grid w-full max-w-[40rem] justify-items-center gap-3.5 text-center sm:gap-4">
+      <div
+        class={`${styles.center} grid w-full max-w-[40rem] justify-items-center gap-3.5 text-center sm:gap-4`}
+      >
         <div class="relative aspect-square w-64 max-w-[74vw] sm:w-72 sm:max-w-[72vw]">
-          <div class="intro-overlay__halo absolute inset-[14%] rounded-full" />
+          <div class={`${styles.halo} absolute inset-[14%] rounded-full`} />
 
           <svg
-            class="intro-overlay__symbol absolute inset-0 h-full w-full overflow-visible"
+            class={`${styles.symbol} absolute inset-0 h-full w-full overflow-visible`}
             viewBox={bifrostMarkViewBox}
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
@@ -54,36 +56,31 @@ const IntroOverlayScene: Component<IntroOverlaySceneProps> = (props) => (
               </linearGradient>
             </defs>
 
-            <circle class="intro-overlay__orbit" cx="285" cy="210" r="172" />
-            <circle
-              class="intro-overlay__orbit intro-overlay__orbit--inner"
-              cx="285"
-              cy="210"
-              r="118"
-            />
+            <circle class={styles.orbit} cx="285" cy="210" r="172" />
+            <circle class={`${styles.orbit} ${styles.orbitInner}`} cx="285" cy="210" r="118" />
 
-            <g class="intro-overlay__cross">
+            <g class={styles.cross}>
               {bifrostMarkSegments.map((segment) => (
                 <g
-                  class="intro-overlay__arm"
+                  class={styles.arm}
                   style={{
                     '--intro-delay': `${segment.delaySeconds}s`,
                     '--intro-x': `${segment.offsetX * 0.32}px`,
                     '--intro-y': `${segment.offsetY * 0.32}px`,
                   }}
                 >
-                  <path d={segment.path} class="intro-overlay__arm-shape" />
+                  <path d={segment.path} class={styles.armShape} />
                 </g>
               ))}
             </g>
 
-            <circle class="intro-overlay__core-pulse" cx="285" cy="210" r="38" />
+            <circle class={styles.corePulse} cx="285" cy="210" r="38" />
           </svg>
         </div>
 
         <h1 class="m-0 flex w-full justify-center sm:w-auto">
           <svg
-            class="intro-overlay__title h-auto w-[min(18rem,82vw)] overflow-visible sm:w-[min(21rem,72vw)]"
+            class={`${styles.title} h-auto w-[min(18rem,82vw)] overflow-visible sm:w-[min(21rem,72vw)]`}
             viewBox={bifrostTitleViewBox}
             xmlns="http://www.w3.org/2000/svg"
             role="img"
@@ -91,17 +88,16 @@ const IntroOverlayScene: Component<IntroOverlaySceneProps> = (props) => (
           >
             {bifrostTitleGlyphs.map((glyph) => (
               <g
-                class="intro-overlay__title-glyph"
+                class={styles.titleGlyph}
                 style={{ '--intro-title-delay': `${glyph.delaySeconds}s` }}
                 transform={glyph.transform}
               >
-                {glyph.paths.map((path, index) => (
+                {glyph.paths.map((path) => (
                   <path
                     d={path.d}
-                    class="intro-overlay__title-fill"
+                    class={styles.titleFill}
                     fill-rule={path.fillRule}
                     aria-hidden="true"
-                    data-layer={index}
                   />
                 ))}
               </g>

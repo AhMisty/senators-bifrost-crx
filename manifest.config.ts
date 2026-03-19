@@ -8,6 +8,7 @@ const extensionIcons = {
   48: iconFile,
   128: iconFile,
 } as const
+const workURL = '*://*.lstyxl.com/*'
 
 export default defineManifest({
   manifest_version: 3,
@@ -16,7 +17,7 @@ export default defineManifest({
   description: pkg.description,
   icons: extensionIcons,
   background: {
-    service_worker: 'src/service.ts',
+    service_worker: 'src/service/index.ts',
     type: 'module',
   },
   options_ui: {
@@ -27,11 +28,11 @@ export default defineManifest({
     default_icon: extensionIcons,
   },
   permissions: ['sidePanel', 'contentSettings', 'storage', 'cookies', 'declarativeNetRequest'],
-  host_permissions: ['<all_urls>'],
+  host_permissions: [workURL],
   content_scripts: [
     {
-      js: ['src/content.ts'],
-      matches: ['https://*/*'],
+      js: ['src/content/index.ts'],
+      matches: [workURL],
     },
   ],
 })

@@ -9,6 +9,7 @@ import pkg from './package.json'
 const devServerHost = 'localhost'
 const devHmrPort = 5173
 const buildOutputDirectory = 'out'
+const extensionOriginPattern = /^chrome-extension:\/\/[a-z]{32}$/
 
 export default defineConfig({
   plugins: [
@@ -33,6 +34,9 @@ export default defineConfig({
   },
   server: {
     host: devServerHost,
+    cors: {
+      origin: extensionOriginPattern,
+    },
     hmr: {
       host: devServerHost,
       port: devHmrPort,

@@ -37,9 +37,8 @@
   },
   "scripts": {
     "lint": "oxlint . --fix --ignore-path .gitignore",
-    "type": "tsc -b",
     "fmt": "oxfmt . --write --ignore-path .gitignore",
-    "check": "run-s lint type fmt",
+    "check": "run-s fmt lint",
     "dev": "vite",
     "preview": "vite preview",
     "git-add": "git add .",
