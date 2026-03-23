@@ -17,7 +17,7 @@ const OptionsDocumentIcon: Component = () => (
 )
 
 export const OptionsView: Component = () => (
-  <main class="flex min-h-screen items-center justify-center p-6 sm:p-8">
+  <main class="absolute inset-0 grid place-items-center overflow-hidden p-6 sm:p-8">
     <IlluminatorButton title="Docs placeholder button">
       <OptionsDocumentIcon />
       <span>Docs</span>

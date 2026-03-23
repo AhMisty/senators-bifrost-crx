@@ -25,14 +25,13 @@ const backgroundImageInitialScale = 1.05
 const backgroundImageEnterDurationMs = 1000
 const backgroundImageScaleVarName = '--background-image-scale'
 const backgroundBlurTransitionDurationVarName = '--background-blur-transition-duration'
-const indexPaths = new Set<string>(redirectRoutes)
+const indexPaths = new Set(redirectRoutes)
 
 type BackgroundLayerKind = 'dots' | 'puffs'
 type BackgroundAnimator = Parameters<typeof createBackgroundDots>[0]['animator']
 type BackgroundProps = {
   isBlurred: boolean
 }
-type BackgroundImageProps = Pick<BackgroundProps, 'isBlurred'>
 type BackgroundLayerProps = {
   kind: BackgroundLayerKind
 }
@@ -72,23 +71,20 @@ const createBackgroundLayer = (
   kind: BackgroundLayerKind,
   canvas: HTMLCanvasElement,
   animator: BackgroundAnimator,
-) => {
-  if (kind === 'dots') {
-    return createBackgroundDots({
-      canvas,
-      animator,
-      settingsRef: { current: backgroundDotsSettings },
-    })
-  }
+) =>
+  kind === 'dots'
+    ? createBackgroundDots({
+        canvas,
+        animator,
+        settingsRef: { current: backgroundDotsSettings },
+      })
+    : createBackgroundPuffs({
+        canvas,
+        animator,
+        settingsRef: { current: backgroundPuffsSettings },
+      })
 
-  return createBackgroundPuffs({
-    canvas,
-    animator,
-    settingsRef: { current: backgroundPuffsSettings },
-  })
-}
-
-const BackgroundImage: Component<BackgroundImageProps> = (props) => {
+const BackgroundImage: Component<BackgroundProps> = (props) => {
   const location = useLocation()
   let pictureElement: HTMLPictureElement | undefined
 
@@ -97,10 +93,11 @@ const BackgroundImage: Component<BackgroundImageProps> = (props) => {
       return
     }
 
-    onCleanup(animateBackgroundImageReveal(pictureElement))
+    const cancelReveal = animateBackgroundImageReveal(pictureElement)
+    onCleanup(cancelReveal)
   })
 
-  const getBackgroundImageFilter = (): string => {
+  const getFilter = (): string => {
     const pathname = location.pathname
     const isIndexPath = indexPaths.has(pathname)
     const shouldBlur = props.isBlurred && !isIndexPath
@@ -119,7 +116,7 @@ const BackgroundImage: Component<BackgroundImageProps> = (props) => {
       style={{
         [backgroundImageScaleVarName]: `${backgroundImageInitialScale}`,
         [backgroundBlurTransitionDurationVarName]: `${introExitTransitionDurationMs}ms`,
-        filter: getBackgroundImageFilter(),
+        filter: getFilter(),
       }}
     >
       <source media="(min-width: 1280px)" srcset={backgroundImageLargeWebp} type="image/webp" />
@@ -165,7 +162,7 @@ const BackgroundLayer: Component<BackgroundLayerProps> = (props) => {
 export const Background: Component<BackgroundProps> = (props) => (
   <Animator root combine duration={{ enter: 0.01, exit: 0.01 }}>
     <div
-      class="fixed inset-0 z-0 overflow-hidden pointer-events-none select-none bg-[var(--app-background-color)]"
+      class="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-[var(--app-background-color)]"
       aria-hidden="true"
     >
       <div class="absolute inset-0 overflow-hidden">

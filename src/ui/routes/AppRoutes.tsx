@@ -18,11 +18,11 @@ const AppShell: Component<RouteSectionProps> = (props) => {
   const isIntroComplete = (): boolean => introStage() === 'complete'
 
   return (
-    <div class="relative isolate min-h-screen">
+    <div class="absolute inset-0 isolate overflow-hidden">
       <Background isBlurred={isBackgroundBlurred()} />
 
       <div
-        class="relative z-[1] min-h-screen overflow-auto transition-opacity duration-[220ms] ease-out"
+        class="absolute inset-0 z-[1] overflow-hidden transition-opacity duration-[220ms] ease-out"
         classList={{
           'pointer-events-none invisible opacity-0': !isIntroComplete(),
           'pointer-events-auto visible opacity-100': isIntroComplete(),

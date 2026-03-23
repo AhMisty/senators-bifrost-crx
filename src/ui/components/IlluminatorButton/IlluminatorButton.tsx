@@ -1,11 +1,21 @@
 import styles from './IlluminatorButton.module.css'
 
-import { splitProps, createSignal, onCleanup, onMount, type Component, type JSX } from 'solid-js'
+import {
+  splitProps,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+  type Component,
+  type JSX,
+} from 'solid-js'
 
 const defaultGlowSizePx = 240
 const defaultGlowColor = 'hsl(60 68.85% 47.84% / 0.2)'
 const frameCornerLengthPx = 8
 const frameStrokeWidthPx = 1
+const frameMinimumSizePx = frameCornerLengthPx + frameStrokeWidthPx
+const frameOffsetPx = frameStrokeWidthPx / 2
 
 type IlluminatorButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: JSX.Element
@@ -25,16 +35,32 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
   let buttonElement: HTMLButtonElement | undefined
   let glowElement: HTMLDivElement | undefined
   const [frameSize, setFrameSize] = createSignal({
-    width: frameCornerLengthPx + frameStrokeWidthPx,
-    height: frameCornerLengthPx + frameStrokeWidthPx,
+    width: frameMinimumSizePx,
+    height: frameMinimumSizePx,
   })
 
   const getGlowSizePx = (): number => localProps.glowSizePx ?? defaultGlowSizePx
-  const getFrameOffsetPx = (): number => frameStrokeWidthPx / 2
-  const getFrameWidthPx = (): number =>
-    Math.max(frameSize().width, frameCornerLengthPx + frameStrokeWidthPx)
-  const getFrameHeightPx = (): number =>
-    Math.max(frameSize().height, frameCornerLengthPx + frameStrokeWidthPx)
+  const frameSvg = createMemo(() => {
+    const { width, height } = frameSize()
+    const frameWidthPx = Math.max(width, frameMinimumSizePx)
+    const frameHeightPx = Math.max(height, frameMinimumSizePx)
+    const right = frameWidthPx - frameOffsetPx
+    const bottom = frameHeightPx - frameOffsetPx
+
+    return {
+      viewBox: `0 0 ${frameWidthPx} ${frameHeightPx}`,
+      paths: [
+        `M ${frameOffsetPx} ${frameOffsetPx} L ${frameOffsetPx} ${frameCornerLengthPx}`,
+        `M ${frameOffsetPx} ${frameOffsetPx} L ${frameCornerLengthPx} ${frameOffsetPx}`,
+        `M ${right} ${frameOffsetPx} L ${frameWidthPx - frameCornerLengthPx} ${frameOffsetPx}`,
+        `M ${right} ${frameOffsetPx} L ${right} ${frameCornerLengthPx}`,
+        `M ${right} ${bottom} L ${right} ${frameHeightPx - frameCornerLengthPx}`,
+        `M ${right} ${bottom} L ${frameWidthPx - frameCornerLengthPx} ${bottom}`,
+        `M ${frameOffsetPx} ${bottom} L ${frameCornerLengthPx} ${bottom}`,
+        `M ${frameOffsetPx} ${bottom} L ${frameOffsetPx} ${frameHeightPx - frameCornerLengthPx}`,
+      ],
+    }
+  })
 
   const hideGlow = (): void => {
     if (!glowElement || glowElement.style.opacity === '0') {
@@ -49,6 +75,40 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
       return
     }
 
+    let resizeFrameId = 0
+    let pendingFrameSize = frameSize()
+
+    const scheduleFrameSize = (width: number, height: number): void => {
+      const nextFrameSize = { width, height }
+
+      if (
+        pendingFrameSize.width === nextFrameSize.width &&
+        pendingFrameSize.height === nextFrameSize.height
+      ) {
+        return
+      }
+
+      pendingFrameSize = nextFrameSize
+
+      if (resizeFrameId) {
+        return
+      }
+
+      resizeFrameId = requestAnimationFrame(() => {
+        resizeFrameId = 0
+        setFrameSize((currentFrameSize) => {
+          if (
+            currentFrameSize.width === pendingFrameSize.width &&
+            currentFrameSize.height === pendingFrameSize.height
+          ) {
+            return currentFrameSize
+          }
+
+          return pendingFrameSize
+        })
+      })
+    }
+
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
 
@@ -56,17 +116,11 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
         return
       }
 
-      setFrameSize({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
-      })
+      scheduleFrameSize(entry.contentRect.width, entry.contentRect.height)
     })
 
     const initialBounds = buttonElement.getBoundingClientRect()
-    setFrameSize({
-      width: initialBounds.width,
-      height: initialBounds.height,
-    })
+    scheduleFrameSize(initialBounds.width, initialBounds.height)
 
     resizeObserver.observe(buttonElement)
 
@@ -97,6 +151,7 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
 
     onCleanup(() => {
       resizeObserver.disconnect()
+      cancelAnimationFrame(resizeFrameId)
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseleave', hideGlow)
     })
@@ -114,7 +169,7 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
       <svg
         class={`${styles.frame} pointer-events-none absolute inset-0 block h-full w-full`}
         aria-hidden="true"
-        viewBox={`0 0 ${getFrameWidthPx()} ${getFrameHeightPx()}`}
+        viewBox={frameSvg().viewBox}
         preserveAspectRatio="none"
       >
         <g
@@ -124,30 +179,9 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path
-            d={`M ${getFrameOffsetPx()} ${getFrameOffsetPx()} L ${getFrameOffsetPx()} ${frameCornerLengthPx}`}
-          />
-          <path
-            d={`M ${getFrameOffsetPx()} ${getFrameOffsetPx()} L ${frameCornerLengthPx} ${getFrameOffsetPx()}`}
-          />
-          <path
-            d={`M ${getFrameWidthPx() - getFrameOffsetPx()} ${getFrameOffsetPx()} L ${getFrameWidthPx() - frameCornerLengthPx} ${getFrameOffsetPx()}`}
-          />
-          <path
-            d={`M ${getFrameWidthPx() - getFrameOffsetPx()} ${getFrameOffsetPx()} L ${getFrameWidthPx() - getFrameOffsetPx()} ${frameCornerLengthPx}`}
-          />
-          <path
-            d={`M ${getFrameWidthPx() - getFrameOffsetPx()} ${getFrameHeightPx() - getFrameOffsetPx()} L ${getFrameWidthPx() - getFrameOffsetPx()} ${getFrameHeightPx() - frameCornerLengthPx}`}
-          />
-          <path
-            d={`M ${getFrameWidthPx() - getFrameOffsetPx()} ${getFrameHeightPx() - getFrameOffsetPx()} L ${getFrameWidthPx() - frameCornerLengthPx} ${getFrameHeightPx() - getFrameOffsetPx()}`}
-          />
-          <path
-            d={`M ${getFrameOffsetPx()} ${getFrameHeightPx() - getFrameOffsetPx()} L ${frameCornerLengthPx} ${getFrameHeightPx() - getFrameOffsetPx()}`}
-          />
-          <path
-            d={`M ${getFrameOffsetPx()} ${getFrameHeightPx() - getFrameOffsetPx()} L ${getFrameOffsetPx()} ${getFrameHeightPx() - frameCornerLengthPx}`}
-          />
+          {frameSvg().paths.map((path) => (
+            <path d={path} />
+          ))}
         </g>
       </svg>
       <div class="pointer-events-none absolute inset-0.5 overflow-hidden" aria-hidden="true">
