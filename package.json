@@ -29,6 +29,7 @@
     "npm-run-all2": "latest",
     "oxfmt": "latest",
     "oxlint": "latest",
+    "oxlint-tsgolint": "latest",
     "typescript": "latest",
     "unocss": "latest",
     "vite": "latest",
