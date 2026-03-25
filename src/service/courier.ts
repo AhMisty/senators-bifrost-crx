@@ -6,6 +6,126 @@ type ResponseHeaders = Headers & {
   getSetCookie(): string[]
 }
 
+type Stringifiable = {
+  toString(): string
+}
+
+const hasCustomToString = (value: object): value is Stringifiable =>
+  typeof value.toString === 'function' && value.toString !== Object.prototype.toString
+
+const stringifyStringifiable = (value: Stringifiable): string => value.toString()
+
+const isSearchParamTuple = (value: unknown): value is [string, string] =>
+  Array.isArray(value) &&
+  value.length === 2 &&
+  typeof value[0] === 'string' &&
+  typeof value[1] === 'string'
+
+const isSearchParamTupleArray = (value: unknown): value is Array<[string, string]> =>
+  Array.isArray(value) && value.every(isSearchParamTuple)
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+class ChromeResponseHeaders extends Headers implements ResponseHeaders {
+  readonly #location: string | null
+  readonly #setCookieHeaders: string[]
+
+  public constructor(headers: HeadersInit, location: string | null, setCookieHeaders: string[]) {
+    super(headers)
+    this.#location = location
+    this.#setCookieHeaders = [...setCookieHeaders]
+  }
+
+  public override get(name: string): string | null {
+    if (name.toLowerCase() === 'location') {
+      return this.#location
+    }
+
+    return super.get(name)
+  }
+
+  public getSetCookie(): string[] {
+    return [...this.#setCookieHeaders]
+  }
+
+  public clone(): ChromeResponseHeaders {
+    return new ChromeResponseHeaders(this, this.#location, this.#setCookieHeaders)
+  }
+}
+
+class ChromeResponse implements Response {
+  private readonly response: Response
+  private readonly responseHeaders: ChromeResponseHeaders
+  public readonly headers: ResponseHeaders
+
+  public constructor(response: Response, responseHeaders: ChromeResponseHeaders) {
+    this.response = response
+    this.responseHeaders = responseHeaders
+    this.headers = responseHeaders
+  }
+
+  public get body(): ReadableStream<Uint8Array<ArrayBuffer>> | null {
+    return this.response.body
+  }
+
+  public get bodyUsed(): boolean {
+    return this.response.bodyUsed
+  }
+
+  public get ok(): boolean {
+    return this.response.ok
+  }
+
+  public get redirected(): boolean {
+    return this.response.redirected
+  }
+
+  public get status(): number {
+    return this.response.status
+  }
+
+  public get statusText(): string {
+    return this.response.statusText
+  }
+
+  public get type(): ResponseType {
+    return this.response.type
+  }
+
+  public get url(): string {
+    return this.response.url
+  }
+
+  public arrayBuffer(): Promise<ArrayBuffer> {
+    return this.response.arrayBuffer()
+  }
+
+  public blob(): Promise<Blob> {
+    return this.response.blob()
+  }
+
+  public async bytes(): Promise<Uint8Array<ArrayBuffer>> {
+    return new Uint8Array(await this.response.arrayBuffer())
+  }
+
+  public formData(): Promise<FormData> {
+    return this.response.formData()
+  }
+
+  public json(): Promise<any> {
+    return this.response.json()
+  }
+
+  public text(): Promise<string> {
+    return this.response.text()
+  }
+
+  public clone(): Response {
+    return new ChromeResponse(this.response.clone(), this.responseHeaders.clone())
+  }
+}
+
 export class ChromeCourier extends Courier {
   public override async get(url: string, headers?: HeadersInit): Promise<false | Response> {
     return this.request('GET', url, undefined, headers)
@@ -45,20 +165,11 @@ export class ChromeCourier extends Courier {
 
       const response = await fetch(requestUrl, requestInit)
       const responseHeaders = await this.createResponseHeaders(requestUrl, response)
-
-      clearTimeout(timeoutId)
-
-      return {
-        headers: responseHeaders,
-        ok: response.ok,
-        redirected: response.redirected,
-        status: response.status,
-        text: () => response.text(),
-        url: response.url,
-      } as Response
+      return new ChromeResponse(response, responseHeaders)
     } catch {
-      clearTimeout(timeoutId)
       return false
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
@@ -93,46 +204,70 @@ export class ChromeCourier extends Courier {
       return body.toString()
     }
 
-    if (Array.isArray(body)) {
-      return new URLSearchParams(body as string[][]).toString()
+    if (isSearchParamTupleArray(body)) {
+      return new URLSearchParams(body).toString()
     }
 
-    if (typeof body === 'object') {
-      const searchParams = new URLSearchParams()
+    if (isRecord(body)) {
+      return this.serializeRecordBody(body)
+    }
 
-      for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
-        if (value === null || value === undefined) {
-          continue
-        }
+    return this.serializeBodyValue(body) ?? undefined
+  }
 
-        searchParams.append(key, String(value))
+  private serializeRecordBody(body: Record<string, unknown>): string {
+    const searchParams = new URLSearchParams()
+
+    for (const [key, value] of Object.entries(body)) {
+      const serializedValue = this.serializeBodyValue(value)
+
+      if (serializedValue === null) {
+        continue
       }
 
-      return searchParams.toString()
+      searchParams.append(key, serializedValue)
     }
 
-    return String(body)
+    return searchParams.toString()
+  }
+
+  private serializeBodyValue(value: unknown): string | null {
+    if (value === null || value === undefined) {
+      return null
+    }
+
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      typeof value === 'bigint'
+    ) {
+      return String(value)
+    }
+
+    if (value instanceof URLSearchParams) {
+      return value.toString()
+    }
+
+    if (value instanceof Date) {
+      return value.toISOString()
+    }
+
+    if (typeof value === 'object' && hasCustomToString(value)) {
+      return stringifyStringifiable(value)
+    }
+
+    return null
   }
 
   private async createResponseHeaders(
     requestUrl: URL,
     response: Response,
-  ): Promise<ResponseHeaders> {
+  ): Promise<ChromeResponseHeaders> {
     const sessionCookies = await chrome.cookies.getAll({ url: new URL('/', requestUrl).toString() })
     const sessionCookieHeaders = sessionCookies.map((cookie) => `${cookie.name}=${cookie.value};`)
     const location = response.redirected ? response.url : null
 
-    return {
-      get(name: string): string | null {
-        if (name.toLowerCase() === 'location') {
-          return location
-        }
-
-        return response.headers.get(name)
-      },
-      getSetCookie(): string[] {
-        return [...sessionCookieHeaders]
-      },
-    } as ResponseHeaders
+    return new ChromeResponseHeaders(response.headers, location, sessionCookieHeaders)
   }
 }

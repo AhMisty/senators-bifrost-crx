@@ -2,7 +2,7 @@ import { routes } from '@/shared/routes'
 import '@/service/spa'
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.runtime.openOptionsPage()
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
-  chrome.sidePanel.setOptions({ path: routes.sidepanel })
+  void chrome.runtime.openOptionsPage()
+  void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  void chrome.sidePanel.setOptions({ path: routes.sidepanel })
 })

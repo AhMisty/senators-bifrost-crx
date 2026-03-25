@@ -11,17 +11,22 @@ const handleSpaNavigation = async (request: Request): Promise<Response> => {
   return fetch(extensionIndexUrl)
 }
 
+const isFetchEvent = (event: Event): event is FetchEvent => event instanceof FetchEvent
+
 globalThis.addEventListener('fetch', (event: Event) => {
-  const fetchEvent = event as FetchEvent
-  const { request } = fetchEvent
+  if (!isFetchEvent(event)) {
+    return
+  }
+
+  const { request } = event
 
   if (
-    request.method !== 'GET' &&
-    request.mode !== 'navigate' &&
+    request.method !== 'GET' ||
+    request.mode !== 'navigate' ||
     new URL(request.url).origin !== extensionOrigin
   ) {
     return
   }
 
-  fetchEvent.respondWith(handleSpaNavigation(request))
+  event.respondWith(handleSpaNavigation(request))
 })

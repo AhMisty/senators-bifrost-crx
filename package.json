@@ -36,9 +36,9 @@
     "vite-plugin-zip-pack": "latest"
   },
   "scripts": {
-    "lint": "oxlint . --fix --ignore-path .gitignore",
+    "lint": "oxlint . --fix --type-aware --type-check --ignore-path .gitignore",
     "fmt": "oxfmt . --write --ignore-path .gitignore",
-    "check": "run-s fmt lint",
+    "check": "run-s lint fmt",
     "dev": "vite",
     "preview": "vite preview",
     "git-add": "git add .",

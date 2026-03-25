@@ -25,7 +25,7 @@ const backgroundImageInitialScale = 1.05
 const backgroundImageEnterDurationMs = 1000
 const backgroundImageScaleVarName = '--background-image-scale'
 const backgroundBlurTransitionDurationVarName = '--background-blur-transition-duration'
-const indexPaths = new Set(redirectRoutes)
+const indexPaths = new Set<string>(redirectRoutes)
 
 type BackgroundLayerKind = 'dots' | 'puffs'
 type BackgroundAnimator = Parameters<typeof createBackgroundDots>[0]['animator']
