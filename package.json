@@ -1,6 +1,6 @@
 {
   "name": "@senators/bifrost-crx",
-  "version": "1.0.0",
+  "version": "1.1.6",
   "private": false,
   "description": "A browser extension for Bifrost, making your interstellar journey easier!",
   "keywords": [

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.service.tsbuildinfo",
+    "composite": true,
+    "lib": ["ESNext", "WebWorker", "WebWorker.Iterable"],
+    "types": ["vite/client", "chrome"]
+  },
+  "include": ["src/service/**/*", "src/shared/**/*"]
+}

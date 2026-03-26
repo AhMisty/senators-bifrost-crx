@@ -2,9 +2,8 @@
   "extends": "./tsconfig.base.json",
   "files": [],
   "references": [
-    { "path": "./src/ui" },
-    { "path": "./src/service" },
-    { "path": "./src/content" },
+    { "path": "./tsconfig.browser.json" },
+    { "path": "./tsconfig.service.json" },
     { "path": "./tsconfig.node.json" }
   ]
 }
