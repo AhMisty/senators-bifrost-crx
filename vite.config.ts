@@ -6,41 +6,36 @@ import zip from 'vite-plugin-zip-pack'
 import manifest from './manifest.config'
 import pkg from './package.json'
 
-const devServerHost = 'localhost'
-const devHmrPort = 5173
-const buildOutputDirectory = 'out'
-const extensionOriginPattern = /^chrome-extension:\/\/[a-z]{32}$/
-
 export default defineConfig({
   plugins: [
     unocss(),
     solid(),
     crx({ manifest }),
     zip({
-      inDir: buildOutputDirectory,
-      outDir: buildOutputDirectory,
+      inDir: `out/${pkg.version}`,
+      outDir: 'out',
       outFileName: `bifrost-${pkg.version}.zip`,
     }),
   ],
   build: {
-    outDir: buildOutputDirectory,
+    outDir: `out/${pkg.version}`,
     target: 'esnext',
     rolldownOptions: {
       output: {
         chunkFileNames: 'assets/js/[name].[hash].js',
-        assetFileNames: `assets/[ext]/[name].[hash].[ext]`,
+        assetFileNames: 'assets/[ext]/[name].[hash].[ext]',
       },
     },
   },
   server: {
-    host: devServerHost,
+    host: 'localhost',
     cors: {
-      origin: extensionOriginPattern,
+      origin: /^chrome-extension:\/\/[a-z]{32}$/,
     },
     hmr: {
-      host: devServerHost,
-      port: devHmrPort,
-      clientPort: devHmrPort,
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173,
     },
   },
   optimizeDeps: {
