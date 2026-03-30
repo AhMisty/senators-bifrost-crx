@@ -1,6 +1,6 @@
 {
   "name": "@senators/bifrost-crx",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "private": false,
   "description": "A browser extension for Bifrost, making your interstellar journey easier!",
   "keywords": [
@@ -21,6 +21,10 @@
   },
   "author": "AhMisty",
   "type": "module",
+  "files": [
+    "README.md",
+    "LICENSE"
+  ],
   "devDependencies": {
     "@crxjs/vite-plugin": "latest",
     "@types/chrome": "latest",
