@@ -1,12 +1,12 @@
 <div align="center">
   <h1>Bifrost CRX</h1>
-  <img src="./public/favicon.svg" width="24%" alt="Bifrost CRX logo" />
+  <img src="../../public/favicon.svg" width="24%" alt="Bifrost CRX logo" />
 
 [![npm version](https://img.shields.io/npm/v/%40senators%2Fbifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](../../LICENSE)
 [![npm downloads](https://img.shields.io/npm/dm/%40senators%2Fbifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
 
-<span style="color: #999">English</span> | [中文](./docs/zh-CN/README.md)
+<span style="color: #999">English</span> | [中文](../zh-CN/README.md)
 
 </div>
 
@@ -111,7 +111,7 @@ The production build generates:
 
 ## License
 
-This project is open source under the [MIT License](./LICENSE).
+This project is open source under the [MIT License](../../LICENSE).
 
 ## Contributing
 
