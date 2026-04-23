@@ -1,43 +1,28 @@
 <div align="center">
   <h1>Bifrost CRX 浏览器扩展</h1>
-  <img src="../../public/favicon.svg" width="24%" alt="Bifrost CRX 标志" />
-
-[![npm 版本](https://img.shields.io/npm/v/%40senators%2Fbifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
-[![许可证：MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](../../LICENSE)
-[![npm 下载量](https://img.shields.io/npm/dm/%40senators%2Fbifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
-
-[English](../en-US/README.md) | <span style="color: #999">中文</span>
-
+  <img src="https://github.com/AhMisty/senators-bifrost-crx/blob/main/logo.svg?raw=true" width="30%"/>
+  
+  [![npm 版本](https://img.shields.io/npm/v/@senators/bifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
+  [![许可证：MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/AhMisty/senators-bifrost-crx/blob/main/LICENSE)
+  [![npm 下载量](https://img.shields.io/npm/dm/@senators/bifrost-crx.svg?style=flat-square)](https://www.npmjs.com/package/@senators/bifrost-crx)
+  
+  [English](https://github.com/AhMisty/senators-bifrost-crx/blob/main/docs/en-US/README.md) | <span style="color: #999">中文</span>
 </div>
 
-> 这是一个面向 Bifrost 的浏览器扩展项目，运行在 Chrome 扩展环境之上，并默认针对 `*.lstyxl.com` 域名完成了基础配置。
+> 🚀 一个面向 Bifrost 的浏览器扩展项目，把核心自动化能力接入 Chrome 扩展运行时。
 
-## 特性
+## ✨ 功能特性
 
-- 基于 Manifest V3、Vite、SolidJS、CRXJS 与 UnoCSS 构建的扩展工程架构。
-- 提供面向 Chrome 运行时的 `ChromeCourier` 适配层，为 `@senators/bifrost` 补齐 `fetch`、Cookie、重定向和请求头处理能力。
-- 内置 service worker、content script、options page 与 side panel 等扩展入口。
-- 通过 service worker 为扩展内部页面提供 SPA 导航兜底能力。
-- 构建结果按版本输出到 `out/<version>`，同时自动生成可分发的 `zip` 压缩包。
+- 🛰️ 将 `@senators/bifrost` 核心库集成到 Chrome 扩展工程中
+- 🔒 为浏览器扩展环境适配请求、Cookie 与重定向处理
+- 🚀 内置 service worker、content script、options page 和 side panel 等扩展入口
+- 🪐 使用 SolidJS 与 UnoCSS 构建扩展界面
+- 🏗️ 自动生成按版本区分的解压产物与 zip 发布包
+- 🛠️ 将 manifest、构建配置与运行时集成解耦，便于维护和扩展
+- ⚡ 内置开发、检查、格式化与生产打包脚本
+- 📡 默认面向已配置的 `*.lstyxl.com` Bifrost 部署环境
 
-## 项目结构
-
-```text
-.
-+-- public/                  扩展静态资源
-+-- src/content/             注入目标站点的内容脚本
-+-- src/service/             后台 service worker 与 Chrome 运行时集成
-+-- src/shared/              跨入口共享的路由与常量
-+-- src/ui/                  面向 options 等扩展页面的 SolidJS 界面
-+-- manifest.config.ts       Manifest V3 源配置
-+-- vite.config.ts           构建、开发服务器与 zip 打包配置
-```
-
-## 它和 `@senators/bifrost` 的关系
-
-这个仓库负责浏览器扩展这一层壳。`@senators/bifrost` 提供核心的游戏自动化能力，而当前项目补上的是 Chrome 运行时集成、扩展页面入口、构建打包和发布产物。
-
-## 快速开始
+## 🚀 快速开始
 
 ### 安装依赖
 
@@ -65,7 +50,7 @@ yarn dev
 pnpm dev
 ```
 
-这会启动基于 Vite 的扩展开发流程，用于扩展页面与 CRX 集成的本地开发。
+这会启动基于 Vite 的开发流程，用于扩展页面和 CRX 集成的本地开发。
 
 ### 构建扩展
 
@@ -80,55 +65,63 @@ yarn build
 pnpm build
 ```
 
-生产构建会生成以下产物：
+构建产物会输出到 `out/<version>`，并同时打包为 `out/bifrost-<version>.zip`。
 
-- `out/<version>/`：用于浏览器“加载已解压的扩展程序”
-- `out/bifrost-<version>.zip`：用于发布分发的压缩包
-
-### 在 Chrome 中加载构建产物
+### 加载扩展
 
 1. 打开 `chrome://extensions`
 2. 开启 `开发者模式`
 3. 点击 `加载已解压的扩展程序`
 4. 选择生成后的 `out/<version>` 目录
 
-## 可用脚本
+## 🛠️ 开发指南
 
-- `npm run dev`：启动扩展开发流程。
-- `npm run build`：执行检查并生成生产环境扩展包。
-- `npm run build-only`：跳过 lint 和格式化，直接构建。
-- `npm run lint`：运行带自动修复和类型感知能力的 Oxlint。
-- `npm run fmt`：使用 Oxfmt 格式化仓库代码。
-- `npm run check`：同时执行 lint 和格式化。
-- `npm run preview`：预览生产构建结果。
-- `npm run push`：构建后发布 npm 包。
+### 构建项目
 
-## 配置说明
+```bash
+# 仅构建项目
+npm run build-only
 
-- `manifest.config.ts` 负责定义权限、host permissions、content scripts、side panel 和扩展元数据。
-- `vite.config.ts` 负责控制版本化输出目录、资源命名、开发服务器以及 zip 打包策略。
-- 当前目标域名通过 `manifest.config.ts` 中的 `workURL` 配置。如果你要适配其他 Bifrost 部署环境，应当先修改这里。
+# 带检查构建
+npm run build
+```
 
-## 许可证
+### 代码规范
 
-本项目基于 [MIT License](../../LICENSE) 开源。
+```bash
+# 检查代码规范
+npm run lint
 
-## 参与贡献
+# 格式化代码
+npm run fmt
+```
 
-欢迎提交 Issue 和 Pull Request。
+## 📜 许可证
 
-1. Fork 本仓库。
-2. 创建你的功能分支（`git checkout -b feature/amazing-feature`）。
-3. 提交修改（`git commit -m 'Add some amazing feature'`）。
-4. 推送到分支（`git push origin feature/amazing-feature`）。
-5. 发起 Pull Request。
+本项目基于 [MIT License](https://github.com/AhMisty/senators-bifrost-crx/blob/main/LICENSE) 开源，你可以自由使用、修改和分发本项目代码。
 
-## 联系方式
+## 🙏 致谢
 
-如果你有问题或建议，欢迎通过 [GitHub Issue](https://github.com/AhMisty/senators-bifrost-crx/issues) 提交。
+- [Bifrost](https://www.npmjs.com/package/@senators/bifrost) - 当前扩展所依赖的核心自动化库
+- [OGame](https://ogame.gameforge.com) - 一个令人着迷的太空策略游戏
+- 所有贡献者 - 感谢你们的宝贵贡献
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+1. Fork 项目
+2. 创建功能分支（`git checkout -b feature/amazing-feature`）
+3. 提交修改（`git commit -m 'Add some amazing feature'`）
+4. 推送到分支（`git push origin feature/amazing-feature`）
+5. 打开 Pull Request
+
+## 📮 联系方式
+
+如果你有问题或建议，欢迎通过 [GitHub Issues](https://github.com/AhMisty/senators-bifrost-crx/issues) 提交。
 
 ---
 
 <div align="center">
-  <p>Built with Vite, SolidJS, and CRXJS | Copyright 2025 Bifrost Project</p>
+  <p>Built with <a href="https://vite.dev">Vite</a> | © 2025 Bifrost Project</p>
 </div>
