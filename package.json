@@ -1,6 +1,6 @@
 {
   "name": "@senators/bifrost-crx",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "private": false,
   "description": "A browser extension for Bifrost, making your interstellar journey easier!",
   "keywords": [
@@ -31,10 +31,10 @@
     ".oxfmtrc.json",
     ".oxlintrc.json",
     "index.html",
+    "LICENSE",
     "logo.svg",
     "manifest.config.ts",
     "README.md",
-    "LICENSE",
     "tsconfig.base.json",
     "tsconfig.browser.json",
     "tsconfig.json",
