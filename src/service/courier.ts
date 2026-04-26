@@ -1,8 +1,12 @@
-import { Courier } from '@senators/bifrost'
+import {
+  Courier,
+  type CourierGetOptions,
+  type CourierPostOptions,
+  type RequestBody,
+  type RequestHeaders,
+} from '@senators/bifrost'
 
 const blockedRequestHeaders = new Set(['connection', 'cookie'])
-
-type RequestBody = string | URLSearchParams | Readonly<Record<string, unknown>>
 
 type ChromeHeaders = Headers & {
   getSetCookie(): string[]
@@ -108,18 +112,18 @@ class ChromeFetchResponse implements Response {
 }
 
 export class ChromeCourier extends Courier {
-  public override async get(url: string, headers?: HeadersInit): Promise<false | Response> {
+  public override async get(options: CourierGetOptions): Promise<false | Response> {
+    const { url, headers } = options
+
     return this.fetchForChrome(url, {
       method: 'GET',
       headers: this.normalizeRequestHeaders(headers),
     })
   }
 
-  public override async post(
-    url: string,
-    body: RequestBody,
-    headers?: HeadersInit,
-  ): Promise<false | Response> {
+  public override async post(options: CourierPostOptions): Promise<false | Response> {
+    const { url, body, headers } = options
+
     return this.fetchForChrome(url, {
       method: 'POST',
       headers: this.normalizeRequestHeaders(headers),
@@ -152,7 +156,7 @@ export class ChromeCourier extends Courier {
     }
   }
 
-  private normalizeRequestHeaders(headers?: HeadersInit): Headers {
+  private normalizeRequestHeaders(headers?: RequestHeaders): Headers {
     const normalizedHeaders = new Headers()
 
     if (!headers) {
