@@ -1,4 +1,5 @@
 import styles from './IlluminatorButton.module.css'
+import { subscribeSharedMousePointer } from './sharedMousePointer'
 
 import {
   splitProps,
@@ -124,15 +125,20 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
 
     resizeObserver.observe(buttonElement)
 
-    const handleMouseMove = (event: MouseEvent): void => {
+    const unsubscribeMousePointer = subscribeSharedMousePointer((pointer) => {
       if (!buttonElement || !glowElement) {
+        return
+      }
+
+      if (!pointer) {
+        hideGlow()
         return
       }
 
       const glowSizePx = getGlowSizePx()
       const bounds = buttonElement.getBoundingClientRect()
-      const x = event.clientX - bounds.left
-      const y = event.clientY - bounds.top
+      const x = pointer.clientX - bounds.left
+      const y = pointer.clientY - bounds.top
       const isVisible =
         x >= -(glowSizePx / 2) &&
         x <= bounds.width + glowSizePx / 2 &&
@@ -144,16 +150,12 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
       if (isVisible) {
         glowElement.style.transform = `translate(calc(${x}px - 50%), calc(${y}px - 50%))`
       }
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseleave', hideGlow)
+    })
 
     onCleanup(() => {
       resizeObserver.disconnect()
       cancelAnimationFrame(resizeFrameId)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseleave', hideGlow)
+      unsubscribeMousePointer()
     })
   })
 

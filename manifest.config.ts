@@ -8,7 +8,7 @@ const extensionIcons = {
   48: iconFile,
   128: iconFile,
 } as const
-const workURL = '*://*.lstyxl.com/*'
+const workURL = '*://*/*'
 
 export default defineManifest({
   manifest_version: 3,
