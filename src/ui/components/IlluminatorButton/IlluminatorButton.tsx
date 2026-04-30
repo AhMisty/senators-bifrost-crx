@@ -166,7 +166,7 @@ export const IlluminatorButton: Component<IlluminatorButtonProps> = (props) => {
         buttonElement = element
       }}
       type={localProps.type ?? 'button'}
-      class={`${styles.button} relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[0.625rem] uppercase select-none md:text-[0.75rem] xl:text-[0.875rem] ${localProps.class ?? ''}`.trim()}
+      class={`${styles.button} relative flex items-center justify-center border-0 bg-transparent p-0 text-[0.625rem] uppercase select-none md:text-[0.75rem] xl:text-[0.875rem] ${localProps.class ?? ''}`.trim()}
     >
       <svg
         class={`${styles.frame} pointer-events-none absolute inset-0 block h-full w-full`}

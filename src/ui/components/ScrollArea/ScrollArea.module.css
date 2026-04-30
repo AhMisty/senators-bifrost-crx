@@ -1,7 +1,6 @@
 .root {
-  --scroll-area-optical-gutter: 0px;
   --scroll-area-rail-width: calc(0.875rem + 0.5rem);
-  --scroll-area-reserved-gutter: var(--scroll-area-optical-gutter);
+  --scroll-area-reserved-gutter: 0px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--scroll-area-reserved-gutter);
   min-width: 0;
@@ -9,9 +8,7 @@
 }
 
 .root[data-overflow-y='true'] {
-  --scroll-area-reserved-gutter: calc(
-    var(--scroll-area-optical-gutter) + var(--scroll-area-rail-width)
-  );
+  --scroll-area-reserved-gutter: var(--scroll-area-rail-width);
 }
 
 .viewport {

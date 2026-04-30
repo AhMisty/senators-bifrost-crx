@@ -2,7 +2,6 @@
   --line-frame-gap: clamp(0.5rem, 0.67vw, 1rem);
   --line-frame-padding: clamp(0.5rem, 0.67vw, 1rem);
   --line-frame-side-rail-width: 0.5rem;
-  --line-frame-body-spacer-width: 0px;
 }
 
 .panel {
@@ -21,10 +20,6 @@
 
 .sideRail {
   width: var(--line-frame-side-rail-width);
-}
-
-.bodySpacer {
-  width: var(--line-frame-body-spacer-width);
 }
 
 .title {

@@ -1,3 +1,60 @@
+.cardList {
+  gap: clamp(2rem, 1rem + 2vw, 3rem);
+}
+
+.cardItem {
+  --options-card-enter-index: 0;
+
+  width: 100%;
+}
+
+.cardItem[data-entered='false'] {
+  animation: options-view-card-enter 800ms ease-out both;
+  animation-delay: calc(var(--options-card-enter-index) * 50ms);
+}
+
+.cardItem[data-entered='true'] {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+:global([data-line-frame-active='false']) .cardItem[data-entered='false'] {
+  animation-play-state: paused;
+}
+
+.cardList > .cardItem:nth-child(2) {
+  --options-card-enter-index: 1;
+}
+
+.cardList > .cardItem:nth-child(3) {
+  --options-card-enter-index: 2;
+}
+
+.cardList > .cardItem:nth-child(4) {
+  --options-card-enter-index: 3;
+}
+
+.cardList > .cardItem:nth-child(5) {
+  --options-card-enter-index: 4;
+}
+
+.cardList > .cardItem:nth-child(6) {
+  --options-card-enter-index: 5;
+}
+
+.cardList > .cardItem:nth-child(7) {
+  --options-card-enter-index: 6;
+}
+
+.cardList > .cardItem:nth-child(8) {
+  --options-card-enter-index: 7;
+}
+
+.cardList > .cardItem:nth-child(n + 9) {
+  --options-card-enter-index: 8;
+}
+
 .cardContent {
   position: relative;
   display: flex;
@@ -29,15 +86,29 @@
 
 .field {
   display: grid;
-  grid-template-columns: minmax(5rem, 7rem) minmax(0, 1fr);
+  grid-template-columns: minmax(max-content, clamp(3.5rem, 12vw, 7rem)) minmax(0, 1fr);
   align-items: center;
-  gap: 1rem;
+  gap: clamp(0.625rem, 2vw, 1rem);
   justify-content: start;
   min-height: 2.75rem;
+  cursor: default;
+}
+
+.field[data-control='input'] {
+  cursor: text;
+}
+
+.field[data-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.accelerationField {
+  animation: options-view-field-in 180ms ease-out both;
 }
 
 .fieldLabel {
   color: hsl(180 68.18% 67.65% / 0.86);
+  cursor: inherit;
   font-family: var(--app-font-family-body);
   font-size: 0.875rem;
   letter-spacing: 0;
@@ -45,182 +116,61 @@
   white-space: nowrap;
 }
 
-.input {
-  justify-self: start;
-  width: 100%;
-  height: 2.75rem;
-  border: 1px solid var(--arwes-frames-line-color);
-  border-radius: 0;
-  background: hsl(180 69.23% 7.65% / 0.72);
-  color: var(--app-text-color);
-  font-family: var(--app-font-family-body);
-  font-size: 1rem;
-  line-height: 1;
-  outline: none;
-  padding: 0 0.875rem;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease;
-}
-
-.input::placeholder {
-  color: hsl(180 68.18% 67.65% / 0.32);
-}
-
-.input:disabled {
-  color: hsl(180 68.18% 67.65% / 0.58);
-  cursor: default;
-  opacity: 0.72;
-}
-
-.input:not(:disabled):focus {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  box-shadow:
-    inset 0 0 0 1px hsl(180 68.07% 53.33% / 0.42),
-    0 0 1.125rem hsl(180 68.07% 53.33% / 0.18);
-}
-
 .formFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   padding-top: 0.25rem;
-}
-
-.switchValue {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  justify-self: start;
-}
-
-.switchControl {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-.switchInput {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  cursor: pointer;
-  opacity: 0;
-}
-
-.switchTrack {
-  position: relative;
-  display: block;
-  width: 3.5rem;
-  height: 1.625rem;
-  border: 1px solid var(--arwes-frames-line-color);
-  background: hsl(180 69.23% 7.65% / 0.78);
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
-}
-
-.switchThumb {
-  position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
-  width: 1rem;
-  height: 1rem;
-  background: hsl(180 68.18% 67.65% / 0.62);
-  transition:
-    background 160ms ease,
-    transform 160ms ease;
-}
-
-.switchInput:checked + .switchTrack {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  background: hsl(180 68.07% 16% / 0.78);
-  box-shadow: 0 0 1rem hsl(180 68.07% 53.33% / 0.18);
-}
-
-.switchInput:checked + .switchTrack .switchThumb {
-  background: hsl(180 68.07% 53.33% / 0.96);
-  transform: translateX(1.875rem);
-}
-
-.switchInput:disabled {
-  cursor: default;
-}
-
-.switchInput:disabled + .switchTrack {
-  opacity: 0.66;
-}
-
-.switchInput:not(:disabled):focus-visible + .switchTrack {
-  box-shadow:
-    inset 0 0 0 1px hsl(180 68.07% 53.33% / 0.42),
-    0 0 1.125rem hsl(180 68.07% 53.33% / 0.18);
-}
-
-.switchStatus {
-  min-width: 1rem;
-  color: hsl(180 68.18% 67.65% / 0.74);
-  font-family: var(--app-font-family-body);
-  font-size: 0.875rem;
-  line-height: 1;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
 }
 
-.button {
-  min-width: 5.5rem;
-  height: 2.375rem;
-  border: 1px solid var(--arwes-frames-line-color);
-  border-radius: 0;
-  background: hsl(180 69.23% 7.65% / 0.72);
-  color: hsl(180 68.18% 67.65% / 0.9);
-  cursor: pointer;
-  font-family: var(--app-font-family-body);
-  font-size: 0.9375rem;
-  line-height: 1;
-  padding: 0 1rem;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease;
-}
-
-.button:hover:not(:disabled),
-.button:focus-visible {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  box-shadow: 0 0 1rem hsl(180 68.07% 53.33% / 0.16);
-  color: var(--app-text-color);
-}
-
-.button:disabled {
-  cursor: default;
-  opacity: 0.54;
-}
-
-.buttonPrimary {
-  background: hsl(180 68.07% 16% / 0.78);
-  color: hsl(180 68.07% 78% / 0.96);
-}
-
 .feedback {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 1rem;
   color: hsl(180 68.18% 67.65% / 0.62);
   font-family: var(--app-font-family-body);
   font-size: 0.8125rem;
   line-height: 1;
   min-width: 0;
-  text-align: left;
+  text-align: right;
+}
+
+@keyframes options-view-field-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes options-view-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardItem {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

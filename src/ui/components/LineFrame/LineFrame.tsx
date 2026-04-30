@@ -28,7 +28,6 @@ type LineFrameProps = {
 type FrameHeaderProps = {
   active: boolean
   class?: string
-  drawWidthReduction?: number
   placement: 'horizontal' | 'vertical'
   settings: FrameSettings
 }
@@ -44,14 +43,12 @@ const FrameHeader: Component<FrameHeaderProps> = (props) => {
       return
     }
 
-    const drawWidthReduction = props.drawWidthReduction ?? 0
-
     if (frame) {
-      frame.update(settings, { widthReduction: drawWidthReduction })
+      frame.update(settings)
       return
     }
 
-    frame = createSafeFrame(svgElement, settings, { widthReduction: drawWidthReduction })
+    frame = createSafeFrame(svgElement, settings)
   })
 
   onCleanup(() => frame?.remove())
@@ -73,11 +70,8 @@ const FrameHeader: Component<FrameHeaderProps> = (props) => {
 }
 
 export const LineFrame: Component<LineFrameProps> = (props) => {
-  let bodyElement: HTMLDivElement | undefined
   let headingElement: HTMLDivElement | undefined
-  let rightSpacerElement: HTMLDivElement | undefined
   const [contentWidth, setContentWidth] = createSignal(0)
-  const [horizontalDrawWidthReduction, setHorizontalDrawWidthReduction] = createSignal(8)
   const isActive = (): boolean => props.active ?? true
   const horizontalHeaderSettings = createMemo(() =>
     createFrameHeaderSettings({ contentLength: contentWidth() }),
@@ -105,57 +99,23 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
     resizeObserver.observe(headingElement)
     setContentWidth(headingElement.offsetWidth)
 
-    let bodyAnimationFrame = 0
-    const updateHorizontalDrawWidthReduction = (): void => {
-      bodyAnimationFrame = 0
-
-      if (!bodyElement) {
-        setHorizontalDrawWidthReduction(0)
-        return
-      }
-
-      const bodyStyle = getComputedStyle(bodyElement)
-      const bodyGap = Number.parseFloat(bodyStyle.columnGap || bodyStyle.gap || '0')
-      const rightSpacerWidth = rightSpacerElement?.offsetWidth ?? 0
-
-      setHorizontalDrawWidthReduction((Number.isFinite(bodyGap) ? bodyGap : 0) + rightSpacerWidth)
-    }
-    const scheduleHorizontalDrawWidthReductionUpdate = (): void => {
-      if (bodyAnimationFrame) {
-        return
-      }
-
-      bodyAnimationFrame = requestAnimationFrame(updateHorizontalDrawWidthReduction)
-    }
-    const bodyResizeObserver = new ResizeObserver(scheduleHorizontalDrawWidthReductionUpdate)
-
-    if (bodyElement) {
-      bodyResizeObserver.observe(bodyElement)
-    }
-
-    if (rightSpacerElement) {
-      bodyResizeObserver.observe(rightSpacerElement)
-    }
-
-    updateHorizontalDrawWidthReduction()
-
     onCleanup(() => {
       cancelAnimationFrame(animationFrame)
-      cancelAnimationFrame(bodyAnimationFrame)
-      bodyResizeObserver.disconnect()
       resizeObserver.disconnect()
     })
   })
 
   return (
-    <div class={`${styles.root} flex h-full min-h-0 min-w-0 flex-1 justify-center`}>
+    <div
+      class={`${styles.root} flex h-full min-h-0 min-w-0 flex-1 justify-center`}
+      data-line-frame-active={isActive() ? 'true' : 'false'}
+    >
       <div
         class={`${styles.panel} relative flex h-full w-full max-w-[1980px] min-h-0 min-w-0 flex-col`}
       >
         <header class={`${styles.header} relative flex flex-row items-center`}>
           <FrameHeader
             active={isActive()}
-            drawWidthReduction={horizontalDrawWidthReduction()}
             placement="horizontal"
             settings={horizontalHeaderSettings()}
           />
@@ -170,12 +130,7 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
           </div>
         </header>
 
-        <div
-          ref={(element) => {
-            bodyElement = element
-          }}
-          class={`${styles.body} flex min-h-0 min-w-0 flex-1 flex-row`}
-        >
+        <div class={`${styles.body} flex min-h-0 min-w-0 flex-1 flex-row`}>
           <aside class={`${styles.sideRail} relative flex h-full shrink-0`}>
             <FrameHeader
               active={isActive()}
@@ -186,18 +141,10 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
 
           <ScrollArea
             class="min-h-0 min-w-0 flex-1"
-            contentClass="flex min-h-full min-w-0 flex-col"
+            contentClass="flex min-h-full min-w-0 flex-col py-4"
           >
             {props.children}
           </ScrollArea>
-
-          <div
-            ref={(element) => {
-              rightSpacerElement = element
-            }}
-            class={`${styles.bodySpacer} shrink-0`}
-            aria-hidden="true"
-          />
         </div>
       </div>
     </div>

@@ -10,13 +10,8 @@ const percentagePattern = /(\d{1,}\.)?\d{1,}%/g
 const mathOnlyPattern = /^[\d.\-+*/%\s()]+$/
 
 type SafeFrame = {
-  update: (settings: FrameSettings, options?: SafeFrameOptions) => void
+  update: (settings: FrameSettings) => void
   remove: () => void
-}
-
-type SafeFrameOptions = {
-  heightReduction?: number
-  widthReduction?: number
 }
 
 const parseMathExpression = (expression: string): number => {
@@ -463,14 +458,9 @@ const drawFrameElements = (
   })
 }
 
-export const createSafeFrame = (
-  svg: SVGSVGElement,
-  settings: FrameSettings,
-  options: SafeFrameOptions = {},
-): SafeFrame => {
+export const createSafeFrame = (svg: SVGSVGElement, settings: FrameSettings): SafeFrame => {
   const container = settings.container ?? document.createElementNS(svgNamespace, 'g')
   let currentSettings = settings
-  let currentOptions = options
   let animationFrame = 0
   let observer: ResizeObserver | undefined
 
@@ -493,12 +483,7 @@ export const createSafeFrame = (
       return
     }
 
-    drawFrameElements(
-      container,
-      Math.max(0, width - (currentOptions.widthReduction ?? 0)),
-      Math.max(0, height - (currentOptions.heightReduction ?? 0)),
-      currentSettings.elements,
-    )
+    drawFrameElements(container, width, height, currentSettings.elements)
   }
 
   const scheduleDraw = (): void => {
@@ -527,9 +512,8 @@ export const createSafeFrame = (
   observer.observe(svg)
 
   return {
-    update: (nextSettings, nextOptions = {}) => {
+    update: (nextSettings) => {
       currentSettings = nextSettings
-      currentOptions = nextOptions
       syncFrameElements(container, currentSettings.elements)
       scheduleDraw()
     },
