@@ -1,0 +1,55 @@
+.frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.frame [data-name='line'] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.frame [data-name='deco'] {
+  opacity: 0;
+}
+
+.frame[data-active='true'] [data-name='line'] {
+  animation: line-frame-draw 800ms ease-out forwards;
+}
+
+.frame[data-active='true'] path[data-name='deco'] {
+  animation: line-frame-deco-in 320ms linear forwards;
+}
+
+.frame[data-active='true'] g[data-name='deco'] {
+  animation: line-frame-deco-in 320ms linear 800ms forwards;
+}
+
+@keyframes line-frame-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes line-frame-deco-in {
+  0% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

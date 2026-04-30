@@ -1,0 +1,80 @@
+.brand {
+  color: hsl(180 68.07% 53.33%);
+}
+
+.mark {
+  filter: drop-shadow(0 0 4px hsl(180 100% 70% / 0.34));
+}
+
+.cross {
+  filter: drop-shadow(0 0 4px hsl(180 100% 70% / 0.36));
+}
+
+.armShape,
+.titleFill {
+  fill: currentcolor;
+}
+
+.markSegment,
+.titleGlyph {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.brand[data-active='true'] .markSegment {
+  animation: bifrost-brand-mark-in 420ms cubic-bezier(0.12, 0.78, 0.24, 1) forwards;
+  animation-delay: var(--bifrost-brand-delay);
+}
+
+.brand[data-active='true'] .titleGlyph {
+  animation: bifrost-brand-title-in 320ms linear forwards;
+  animation-delay: calc(160ms + var(--bifrost-brand-delay));
+}
+
+.title {
+  shape-rendering: geometricPrecision;
+  filter: drop-shadow(0 0 5px hsl(180 100% 70% / 0.42));
+}
+
+.titleFill {
+  shape-rendering: geometricPrecision;
+}
+
+@keyframes bifrost-brand-mark-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  58% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bifrost-brand-title-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  56% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  78% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

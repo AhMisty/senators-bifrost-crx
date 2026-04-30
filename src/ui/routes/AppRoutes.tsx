@@ -2,7 +2,10 @@ import { Navigate, Route, Router, type RouteSectionProps } from '@solidjs/router
 import { Show, createSignal, type Component } from 'solid-js'
 
 import { Background } from '@/ui/components/Background/Background'
+import { BifrostBrand } from '@/ui/components/BifrostBrand'
 import { IntroOverlay } from '@/ui/components/IntroOverlay/IntroOverlay'
+import { introExitTransitionDurationMs } from '@/ui/components/IntroOverlay/introOverlayTimings'
+import { LineFrame } from '@/ui/components/LineFrame'
 import { OptionsView } from '@/ui/views/OptionsView'
 import { defaultRoute, redirectRoutes, routes } from '@/shared/routes'
 
@@ -15,6 +18,7 @@ const AppShell: Component<RouteSectionProps> = (props) => {
   const [introStage, setIntroStage] = createSignal<IntroStage>('active')
 
   const isBackgroundBlurred = (): boolean => introStage() !== 'active'
+  const isAppEntering = (): boolean => introStage() !== 'active'
   const isIntroComplete = (): boolean => introStage() === 'complete'
 
   return (
@@ -22,13 +26,19 @@ const AppShell: Component<RouteSectionProps> = (props) => {
       <Background isBlurred={isBackgroundBlurred()} />
 
       <div
-        class="absolute inset-0 z-[1] overflow-hidden transition-opacity duration-[220ms] ease-out"
+        class="absolute inset-0 z-[1] overflow-hidden transition-opacity [transition-duration:var(--app-enter-duration)] ease-out"
         classList={{
-          'pointer-events-none invisible opacity-0': !isIntroComplete(),
-          'pointer-events-auto visible opacity-100': isIntroComplete(),
+          'pointer-events-none opacity-0': !isAppEntering(),
+          'pointer-events-none opacity-100': isAppEntering() && !isIntroComplete(),
+          'pointer-events-auto opacity-100': isIntroComplete(),
+        }}
+        style={{
+          '--app-enter-duration': `${introExitTransitionDurationMs}ms`,
         }}
       >
-        {props.children}
+        <LineFrame active={isAppEntering()} title={<BifrostBrand active={isAppEntering()} />}>
+          {props.children}
+        </LineFrame>
       </div>
 
       <Show when={!isIntroComplete()}>

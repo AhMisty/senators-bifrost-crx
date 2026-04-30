@@ -5,7 +5,14 @@
   --app-selection-text-color: hsl(180 20% 4%);
   --app-selection-background-color: hsl(180 68.07% 53.33% / 0.88);
   --app-scrollbar-thumb-color: rgb(34 120 214);
+  --arwes-frames-bg-color: hsl(180 69.23% 15.29% / 0.15);
+  --arwes-frames-line-color: hsl(180 69.23% 15.29% / 0.8);
+  --arwes-frames-deco-color: hsl(180 68.18% 25.88% / 0.8);
   --app-font-family: 'Titillium Web', sans-serif;
+  --app-font-family-header: var(--app-font-family);
+  --app-font-family-body: var(--app-font-family);
+  --app-font-family-cta: var(--app-font-family);
+  --app-font-family-code: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
   scrollbar-width: thin;
   scrollbar-color: var(--app-scrollbar-thumb-color) transparent;
 }
