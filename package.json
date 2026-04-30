@@ -76,6 +76,8 @@
     "@arwes/solid": "latest",
     "@senators/bifrost": "latest",
     "@solidjs/router": "latest",
+    "overlayscrollbars": "^2.15.1",
+    "overlayscrollbars-solid": "^0.5.6",
     "solid-js": "latest"
   }
 }

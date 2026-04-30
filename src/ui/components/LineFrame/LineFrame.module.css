@@ -1,3 +1,36 @@
+.root {
+  --line-frame-gap: clamp(0.5rem, 0.67vw, 1rem);
+  --line-frame-padding: clamp(0.5rem, 0.67vw, 1rem);
+  --line-frame-side-rail-width: 0.5rem;
+  --line-frame-body-spacer-width: 0px;
+}
+
+.panel {
+  gap: var(--line-frame-gap);
+  padding: var(--line-frame-padding);
+}
+
+.header {
+  gap: var(--line-frame-gap);
+  padding-bottom: var(--line-frame-gap);
+}
+
+.body {
+  gap: var(--line-frame-gap);
+}
+
+.sideRail {
+  width: var(--line-frame-side-rail-width);
+}
+
+.bodySpacer {
+  width: var(--line-frame-body-spacer-width);
+}
+
+.title {
+  font-size: clamp(1.75rem, 1.35rem + 0.9vw, 2.25rem);
+}
+
 .frame {
   position: absolute;
   inset: 0;

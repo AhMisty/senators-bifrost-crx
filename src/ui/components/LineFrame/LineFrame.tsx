@@ -11,6 +11,7 @@ import {
   type JSX,
 } from 'solid-js'
 
+import { ScrollArea } from '@/ui/components/ScrollArea'
 import { createSafeFrame } from '@/ui/libs/createSafeFrame'
 
 const verticalHeaderSettings = createFrameHeaderSettings({
@@ -27,6 +28,7 @@ type LineFrameProps = {
 type FrameHeaderProps = {
   active: boolean
   class?: string
+  drawWidthReduction?: number
   placement: 'horizontal' | 'vertical'
   settings: FrameSettings
 }
@@ -42,8 +44,14 @@ const FrameHeader: Component<FrameHeaderProps> = (props) => {
       return
     }
 
-    frame?.remove()
-    frame = createSafeFrame(svgElement, settings)
+    const drawWidthReduction = props.drawWidthReduction ?? 0
+
+    if (frame) {
+      frame.update(settings, { widthReduction: drawWidthReduction })
+      return
+    }
+
+    frame = createSafeFrame(svgElement, settings, { widthReduction: drawWidthReduction })
   })
 
   onCleanup(() => frame?.remove())
@@ -65,8 +73,11 @@ const FrameHeader: Component<FrameHeaderProps> = (props) => {
 }
 
 export const LineFrame: Component<LineFrameProps> = (props) => {
+  let bodyElement: HTMLDivElement | undefined
   let headingElement: HTMLDivElement | undefined
+  let rightSpacerElement: HTMLDivElement | undefined
   const [contentWidth, setContentWidth] = createSignal(0)
+  const [horizontalDrawWidthReduction, setHorizontalDrawWidthReduction] = createSignal(8)
   const isActive = (): boolean => props.active ?? true
   const horizontalHeaderSettings = createMemo(() =>
     createFrameHeaderSettings({ contentLength: contentWidth() }),
@@ -77,21 +88,74 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
       return
     }
 
-    const resizeObserver = new ResizeObserver(() =>
-      setContentWidth(headingElement?.offsetWidth ?? 0),
-    )
+    let animationFrame = 0
+    const updateContentWidth = (): void => {
+      animationFrame = 0
+      setContentWidth(headingElement?.offsetWidth ?? 0)
+    }
+    const scheduleContentWidthUpdate = (): void => {
+      if (animationFrame) {
+        return
+      }
+
+      animationFrame = requestAnimationFrame(updateContentWidth)
+    }
+    const resizeObserver = new ResizeObserver(scheduleContentWidthUpdate)
+
     resizeObserver.observe(headingElement)
     setContentWidth(headingElement.offsetWidth)
 
-    onCleanup(() => resizeObserver.disconnect())
+    let bodyAnimationFrame = 0
+    const updateHorizontalDrawWidthReduction = (): void => {
+      bodyAnimationFrame = 0
+
+      if (!bodyElement) {
+        setHorizontalDrawWidthReduction(0)
+        return
+      }
+
+      const bodyStyle = getComputedStyle(bodyElement)
+      const bodyGap = Number.parseFloat(bodyStyle.columnGap || bodyStyle.gap || '0')
+      const rightSpacerWidth = rightSpacerElement?.offsetWidth ?? 0
+
+      setHorizontalDrawWidthReduction((Number.isFinite(bodyGap) ? bodyGap : 0) + rightSpacerWidth)
+    }
+    const scheduleHorizontalDrawWidthReductionUpdate = (): void => {
+      if (bodyAnimationFrame) {
+        return
+      }
+
+      bodyAnimationFrame = requestAnimationFrame(updateHorizontalDrawWidthReduction)
+    }
+    const bodyResizeObserver = new ResizeObserver(scheduleHorizontalDrawWidthReductionUpdate)
+
+    if (bodyElement) {
+      bodyResizeObserver.observe(bodyElement)
+    }
+
+    if (rightSpacerElement) {
+      bodyResizeObserver.observe(rightSpacerElement)
+    }
+
+    updateHorizontalDrawWidthReduction()
+
+    onCleanup(() => {
+      cancelAnimationFrame(animationFrame)
+      cancelAnimationFrame(bodyAnimationFrame)
+      bodyResizeObserver.disconnect()
+      resizeObserver.disconnect()
+    })
   })
 
   return (
-    <div class="flex h-full min-h-0 min-w-0 flex-1 justify-center">
-      <div class="relative flex h-full w-full max-w-[1980px] min-h-0 min-w-0 flex-col gap-2 p-2 md:gap-4 md:p-4">
-        <header class="relative flex flex-row items-center gap-2 pb-2 md:gap-4 md:pb-4">
+    <div class={`${styles.root} flex h-full min-h-0 min-w-0 flex-1 justify-center`}>
+      <div
+        class={`${styles.panel} relative flex h-full w-full max-w-[1980px] min-h-0 min-w-0 flex-col`}
+      >
+        <header class={`${styles.header} relative flex flex-row items-center`}>
           <FrameHeader
             active={isActive()}
+            drawWidthReduction={horizontalDrawWidthReduction()}
             placement="horizontal"
             settings={horizontalHeaderSettings()}
           />
@@ -100,14 +164,19 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
             ref={(element) => {
               headingElement = element
             }}
-            class="m-0 flex items-center font-[var(--app-font-family-header)] text-[1.75rem] leading-none font-light text-[hsl(180_68.14%_44.31%)] md:text-[2rem] xl:text-[2.25rem]"
+            class={`${styles.title} m-0 flex items-center font-[var(--app-font-family-header)] leading-none font-light text-[hsl(180_68.14%_44.31%)]`}
           >
             {props.title}
           </div>
         </header>
 
-        <div class="flex min-h-0 min-w-0 flex-1 flex-row gap-2 md:gap-4">
-          <aside class="relative flex h-full w-2 shrink-0">
+        <div
+          ref={(element) => {
+            bodyElement = element
+          }}
+          class={`${styles.body} flex min-h-0 min-w-0 flex-1 flex-row`}
+        >
+          <aside class={`${styles.sideRail} relative flex h-full shrink-0`}>
             <FrameHeader
               active={isActive()}
               placement="vertical"
@@ -115,9 +184,20 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
             />
           </aside>
 
-          <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-8">
+          <ScrollArea
+            class="min-h-0 min-w-0 flex-1"
+            contentClass="flex min-h-full min-w-0 flex-col"
+          >
             {props.children}
-          </div>
+          </ScrollArea>
+
+          <div
+            ref={(element) => {
+              rightSpacerElement = element
+            }}
+            class={`${styles.bodySpacer} shrink-0`}
+            aria-hidden="true"
+          />
         </div>
       </div>
     </div>

@@ -10,7 +10,13 @@ const percentagePattern = /(\d{1,}\.)?\d{1,}%/g
 const mathOnlyPattern = /^[\d.\-+*/%\s()]+$/
 
 type SafeFrame = {
+  update: (settings: FrameSettings, options?: SafeFrameOptions) => void
   remove: () => void
+}
+
+type SafeFrameOptions = {
+  heightReduction?: number
+  widthReduction?: number
 }
 
 const parseMathExpression = (expression: string): number => {
@@ -289,26 +295,39 @@ const applyStyle = (element: SVGElement, style?: object): void => {
   })
 }
 
-const renderFrameElement = (settings: FrameSettingsElement): SVGElement => {
-  const element = document.createElementNS(svgNamespace, settings.type ?? 'path')
-
+const syncFrameElement = (element: SVGElement, settings: FrameSettingsElement): void => {
   if (settings.name) {
     element.dataset.name = settings.name
+  } else {
+    delete element.dataset.name
   }
 
   if (settings.name === 'line' && (settings.type === undefined || settings.type === 'path')) {
     element.setAttribute('pathLength', '1')
+  } else {
+    element.removeAttribute('pathLength')
   }
 
   if (settings.id) {
     element.id = settings.id
+  } else {
+    element.removeAttribute('id')
   }
+
+  element.removeAttribute('class')
 
   if (settings.className) {
     element.classList.value = settings.className
   }
 
+  element.removeAttribute('style')
   applyStyle(element, settings.style)
+}
+
+const renderFrameElement = (settings: FrameSettingsElement): SVGElement => {
+  const element = document.createElementNS(svgNamespace, settings.type ?? 'path')
+
+  syncFrameElement(element, settings)
 
   if (settings.type === 'svg') {
     element.setAttribute('xmlns', svgNamespace)
@@ -331,6 +350,48 @@ const renderFrameElement = (settings: FrameSettingsElement): SVGElement => {
   }
 
   return element
+}
+
+const syncFrameElements = (
+  parent: SVGElement,
+  elementSettingsList: FrameSettingsElement[],
+): void => {
+  const children = Array.from(parent.children).filter(
+    (child): child is SVGElement => child instanceof SVGElement,
+  )
+
+  if (children.length !== elementSettingsList.length) {
+    parent.replaceChildren(...elementSettingsList.map((settings) => renderFrameElement(settings)))
+    return
+  }
+
+  for (const [index, settings] of elementSettingsList.entries()) {
+    const element = children[index]
+    const type = settings.type ?? 'path'
+
+    if (!element || element.tagName.toLowerCase() !== type.toLowerCase()) {
+      parent.replaceChildren(...elementSettingsList.map((item) => renderFrameElement(item)))
+      return
+    }
+
+    syncFrameElement(element, settings)
+
+    if (
+      settings.type === 'svg' ||
+      settings.type === 'g' ||
+      settings.type === 'defs' ||
+      settings.type === 'clipPath' ||
+      settings.type === 'mask'
+    ) {
+      if (typeof settings.elements === 'string') {
+        if (element.innerHTML !== settings.elements) {
+          element.innerHTML = settings.elements
+        }
+      } else {
+        syncFrameElements(element, settings.elements)
+      }
+    }
+  }
 }
 
 const drawFrameElements = (
@@ -402,8 +463,15 @@ const drawFrameElements = (
   })
 }
 
-export const createSafeFrame = (svg: SVGSVGElement, settings: FrameSettings): SafeFrame => {
+export const createSafeFrame = (
+  svg: SVGSVGElement,
+  settings: FrameSettings,
+  options: SafeFrameOptions = {},
+): SafeFrame => {
   const container = settings.container ?? document.createElementNS(svgNamespace, 'g')
+  let currentSettings = settings
+  let currentOptions = options
+  let animationFrame = 0
   let observer: ResizeObserver | undefined
 
   const resize = (): { width: number; height: number } => {
@@ -425,12 +493,28 @@ export const createSafeFrame = (svg: SVGSVGElement, settings: FrameSettings): Sa
       return
     }
 
-    drawFrameElements(container, width, height, settings.elements)
+    drawFrameElements(
+      container,
+      Math.max(0, width - (currentOptions.widthReduction ?? 0)),
+      Math.max(0, height - (currentOptions.heightReduction ?? 0)),
+      currentSettings.elements,
+    )
+  }
+
+  const scheduleDraw = (): void => {
+    if (animationFrame) {
+      return
+    }
+
+    animationFrame = requestAnimationFrame(() => {
+      animationFrame = 0
+      draw()
+    })
   }
 
   container.dataset.frame = ''
   container.style.setProperty('vector-effect', 'non-scaling-stroke')
-  settings.elements.forEach((elementSettings) =>
+  currentSettings.elements.forEach((elementSettings) =>
     container.append(renderFrameElement(elementSettings)),
   )
 
@@ -439,12 +523,19 @@ export const createSafeFrame = (svg: SVGSVGElement, settings: FrameSettings): Sa
   }
 
   draw()
-  observer = new ResizeObserver(draw)
+  observer = new ResizeObserver(scheduleDraw)
   observer.observe(svg)
 
   return {
+    update: (nextSettings, nextOptions = {}) => {
+      currentSettings = nextSettings
+      currentOptions = nextOptions
+      syncFrameElements(container, currentSettings.elements)
+      scheduleDraw()
+    },
     remove: () => {
       observer?.disconnect()
+      cancelAnimationFrame(animationFrame)
       Array.from(container.children).forEach((child) => child.remove())
       container.remove()
     },

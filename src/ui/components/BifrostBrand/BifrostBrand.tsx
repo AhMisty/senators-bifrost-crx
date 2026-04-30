@@ -23,7 +23,7 @@ export const BifrostBrand: Component<BifrostBrandProps> = (props) => {
       role="img"
     >
       <svg
-        class={`${styles.mark} h-6 w-6 overflow-visible md:h-7 md:w-7 xl:h-8 xl:w-8`}
+        class={`${styles.mark} overflow-visible`}
         viewBox={bifrostMarkViewBox}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -40,7 +40,7 @@ export const BifrostBrand: Component<BifrostBrandProps> = (props) => {
       </svg>
 
       <svg
-        class={`${styles.title} h-4 w-auto overflow-visible md:h-[1.125rem] xl:h-5`}
+        class={`${styles.title} overflow-visible`}
         viewBox={bifrostTitleViewBox}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"

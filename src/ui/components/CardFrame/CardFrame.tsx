@@ -22,7 +22,8 @@ const frameOctagonSettings = createFrameOctagonSettings({
   squareSize,
 })
 const frameNeroSettings = createFrameNeroSettings()
-const frameBaseClass = 'absolute inset-0 block size-full border-0 m-0 p-0 arwes-frames-frame'
+const frameBaseClass =
+  'absolute inset-0 z-[1] block size-full overflow-visible border-0 m-0 p-0 arwes-frames-frame'
 
 type CardFrameProps = {
   class?: string
