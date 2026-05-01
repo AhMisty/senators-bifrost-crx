@@ -15,7 +15,7 @@
 
 - 🛰️ Integrates the `@senators/bifrost` core library into a Chrome extension project
 - 🔒 Adapts requests, cookies, and redirects for the browser extension environment
-- 🚀 Ships with service worker, content script, options page, and side panel entry points
+- 🚀 Ships with service worker, options page, and side panel entry points
 - 🪐 Uses SolidJS and UnoCSS to build the extension UI
 - 🏗️ Generates versioned unpacked builds and zipped release artifacts
 - 🛠️ Keeps manifest, build config, and runtime integration separated and maintainable

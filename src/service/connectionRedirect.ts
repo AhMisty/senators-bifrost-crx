@@ -5,43 +5,13 @@ import {
   normalizeConnectionOptions,
   type ConnectionOptions,
 } from '@/shared/connectionOptions'
+import { dnrResourceTypes, escapeDnrRegex, parseHttpUrl } from '@/service/dnrRules'
 
 const connectionRedirectRuleId = 1
-
-const connectionRedirectResourceTypes = [
-  'main_frame',
-  'sub_frame',
-  'stylesheet',
-  'script',
-  'image',
-  'font',
-  'object',
-  'xmlhttprequest',
-  'ping',
-  'media',
-  'websocket',
-  'other',
-] satisfies Array<`${chrome.declarativeNetRequest.ResourceType}`>
 
 type ConnectionAddressMap = {
   regexFilter: string
   redirectSubstitution: string
-}
-
-const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const parseHttpUrl = (value: string): URL | null => {
-  try {
-    const url = new URL(value)
-
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return null
-    }
-
-    return url
-  } catch {
-    return null
-  }
 }
 
 const normalizeBasePath = (pathname: string): string => {
@@ -99,7 +69,7 @@ const createConnectionAddressMap = (options: ConnectionOptions): ConnectionAddre
   }
 
   return {
-    regexFilter: `^${escapeRegex(createAddressBase(originUrl))}((?:[/?].*)?)$`,
+    regexFilter: `^${escapeDnrRegex(createAddressBase(originUrl))}((?:[/?].*)?)$`,
     redirectSubstitution: `${createAddressBase(gameUrl)}\\1`,
   }
 }
@@ -125,7 +95,7 @@ const createConnectionRedirectRule = (
     condition: {
       regexFilter: addressMap.regexFilter,
       isUrlFilterCaseSensitive: true,
-      resourceTypes: connectionRedirectResourceTypes,
+      resourceTypes: dnrResourceTypes,
     },
   }
 }
@@ -185,6 +155,10 @@ const queueConnectionRedirectRuleUpdate = (options?: ConnectionOptions): void =>
 }
 
 chrome.runtime.onInstalled.addListener(() => {
+  queueConnectionRedirectRuleUpdate()
+})
+
+chrome.runtime.onStartup.addListener(() => {
   queueConnectionRedirectRuleUpdate()
 })
 

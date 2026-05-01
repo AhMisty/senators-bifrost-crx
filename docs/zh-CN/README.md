@@ -15,7 +15,7 @@
 
 - 🛰️ 将 `@senators/bifrost` 核心库集成到 Chrome 扩展工程中
 - 🔒 为浏览器扩展环境适配请求、Cookie 与重定向处理
-- 🚀 内置 service worker、content script、options page 和 side panel 等扩展入口
+- 🚀 内置 service worker、options page 和 side panel 等扩展入口
 - 🪐 使用 SolidJS 与 UnoCSS 构建扩展界面
 - 🏗️ 自动生成按版本区分的解压产物与 zip 发布包
 - 🛠️ 将 manifest、构建配置与运行时集成解耦，便于维护和扩展

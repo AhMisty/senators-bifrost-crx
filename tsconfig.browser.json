@@ -8,5 +8,5 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "include": ["src/ui/**/*", "src/content/**/*", "src/shared/**/*"]
+  "include": ["src/ui/**/*", "src/shared/**/*"]
 }

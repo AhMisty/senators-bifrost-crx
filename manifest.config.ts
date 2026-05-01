@@ -34,12 +34,6 @@ export default defineManifest({
   action: {
     default_icon: extensionIcons,
   },
-  permissions: ['sidePanel', 'contentSettings', 'storage', 'cookies', 'declarativeNetRequest'],
+  permissions: ['sidePanel', 'storage', 'cookies', 'declarativeNetRequest'],
   host_permissions: [workURL],
-  content_scripts: [
-    {
-      js: ['src/content/index.ts'],
-      matches: [workURL],
-    },
-  ],
 })

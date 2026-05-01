@@ -7,11 +7,11 @@ import { IntroOverlay } from '@/ui/components/IntroOverlay/IntroOverlay'
 import { introExitTransitionDurationMs } from '@/ui/components/IntroOverlay/introOverlayTimings'
 import { LineFrame } from '@/ui/components/LineFrame'
 import { OptionsView } from '@/ui/views/OptionsView'
+import { SidePanelView } from '@/ui/views/SidePanelView'
 import { defaultRoute, redirectRoutes, routes } from '@/shared/routes'
 
 type IntroStage = 'active' | 'exiting' | 'complete'
 
-const EmptyView: Component = () => null
 const RedirectToDefaultRoute: Component = () => <Navigate href={defaultRoute} />
 
 const AppShell: Component<RouteSectionProps> = (props) => {
@@ -57,7 +57,7 @@ export const AppRoutes: Component = () => (
       <Route path={path} component={RedirectToDefaultRoute} />
     ))}
     <Route path={routes.options} component={OptionsView} />
-    <Route path={routes.sidepanel} component={EmptyView} />
+    <Route path={routes.sidepanel} component={SidePanelView} />
     <Route path="*rest" component={RedirectToDefaultRoute} />
   </Router>
 )
