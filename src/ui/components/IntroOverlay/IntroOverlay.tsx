@@ -3,11 +3,11 @@ import styles from './IntroOverlay.module.css'
 import { createSignal, onCleanup, onMount, type Component } from 'solid-js'
 
 import {
-  bifrostMarkSegments,
-  bifrostMarkViewBox,
-  bifrostTitleGlyphs,
-  bifrostTitleViewBox,
-} from './introOverlayData'
+  brandMarkSegments,
+  brandMarkViewBox,
+  brandTitleGlyphs,
+  brandTitleViewBox,
+} from '@/ui/components/BrandLogo/brandLogoData'
 import {
   introCompleteDelayMs,
   introExitDelayMs,
@@ -56,15 +56,23 @@ export const IntroOverlay: Component<IntroOverlayProps> = (props) => {
 
             <svg
               class={`${styles.symbol} absolute inset-0 h-full w-full overflow-visible`}
-              viewBox={bifrostMarkViewBox}
+              viewBox={brandMarkViewBox}
               xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
             >
               <defs>
                 <linearGradient id="intro-overlay-orbit-line" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="rgb(0 255 255 / 0)" />
-                  <stop offset="50%" stop-color="rgb(0 255 255 / 0.72)" />
-                  <stop offset="100%" stop-color="rgb(0 255 255 / 0)" />
+                  <stop offset="0%" stop-color="var(--app-primary-bright-color)" stop-opacity="0" />
+                  <stop
+                    offset="50%"
+                    stop-color="var(--app-primary-bright-color)"
+                    stop-opacity="0.72"
+                  />
+                  <stop
+                    offset="100%"
+                    stop-color="var(--app-primary-bright-color)"
+                    stop-opacity="0"
+                  />
                 </linearGradient>
               </defs>
 
@@ -72,7 +80,7 @@ export const IntroOverlay: Component<IntroOverlayProps> = (props) => {
               <circle class={`${styles.orbit} ${styles.orbitInner}`} cx="285" cy="210" r="118" />
 
               <g class={styles.cross}>
-                {bifrostMarkSegments.map((segment) => (
+                {brandMarkSegments.map((segment) => (
                   <g
                     class={styles.arm}
                     style={{
@@ -93,12 +101,12 @@ export const IntroOverlay: Component<IntroOverlayProps> = (props) => {
           <h1 class="m-0 flex w-full justify-center sm:w-auto">
             <svg
               class={`${styles.title} h-auto w-[min(18rem,82vw)] overflow-visible sm:w-[min(21rem,72vw)]`}
-              viewBox={bifrostTitleViewBox}
+              viewBox={brandTitleViewBox}
               xmlns="http://www.w3.org/2000/svg"
               role="img"
-              aria-label="BIFROST"
+              aria-label="Brand logo"
             >
-              {bifrostTitleGlyphs.map((glyph) => (
+              {brandTitleGlyphs.map((glyph) => (
                 <g
                   class={styles.titleGlyph}
                   style={{ '--intro-title-delay': `${glyph.delaySeconds}s` }}

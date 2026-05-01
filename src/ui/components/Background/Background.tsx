@@ -1,6 +1,6 @@
 import { useLocation } from '@solidjs/router'
 import { Animator, createBackgroundDots, createBackgroundPuffs, useGetAnimator } from '@arwes/solid'
-import { onCleanup, onMount, type Component } from 'solid-js'
+import { createEffect, createSignal, onCleanup, onMount, type Component } from 'solid-js'
 
 import backgroundImageLargeWebp from '@/ui/assets/background/large.webp'
 import backgroundImageMediumWebp from '@/ui/assets/background/medium.webp'
@@ -8,15 +8,13 @@ import backgroundImageSmallWebp from '@/ui/assets/background/small.webp'
 import { redirectRoutes } from '@/shared/routes'
 import { introExitTransitionDurationMs } from '@/ui/components/IntroOverlay/introOverlayTimings'
 
-const backgroundDotsSettings = {
-  color: 'hsla(180, 50%, 70%, 0.15)',
+const backgroundDotsSettingsBase = {
   size: 2,
   distance: 40,
   originInverted: true,
 } as const
 
-const backgroundPuffsSettings = {
-  color: 'hsla(180, 50%, 70%, 0.25)',
+const backgroundPuffsSettingsBase = {
   quantity: 20,
 } as const
 
@@ -38,16 +36,30 @@ type BackgroundLayerProps = {
 
 const easeOutExpo = (value: number): number => (value === 1 ? 1 : 1 - 2 ** (-10 * value))
 
+const getThemeHsl = (tokenName: string): string =>
+  getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
+
+const getThemeColor = (tokenName: string, alpha: number): string =>
+  `hsl(${getThemeHsl(tokenName)} / ${alpha})`
+
 const setBackgroundImageState = (element: HTMLElement, opacity: number, scale: number): void => {
   element.style.opacity = `${opacity}`
   element.style.setProperty(backgroundImageScaleVarName, `${scale}`)
 }
 
-const animateBackgroundImageReveal = (element: HTMLElement): (() => void) => {
+const animateBackgroundImageReveal = (
+  element: HTMLElement,
+  onComplete: () => void,
+): (() => void) => {
   let frameId = 0
+  let isCancelled = false
   const startTime = performance.now()
 
   const renderFrame = (timestamp: number): void => {
+    if (isCancelled) {
+      return
+    }
+
     const progress = Math.min((timestamp - startTime) / backgroundImageEnterDurationMs, 1)
     const easedProgress = easeOutExpo(progress)
     const opacity =
@@ -58,13 +70,18 @@ const animateBackgroundImageReveal = (element: HTMLElement): (() => void) => {
 
     if (progress < 1) {
       frameId = requestAnimationFrame(renderFrame)
+    } else {
+      onComplete()
     }
   }
 
   setBackgroundImageState(element, backgroundImageInitialOpacity, backgroundImageInitialScale)
   frameId = requestAnimationFrame(renderFrame)
 
-  return () => cancelAnimationFrame(frameId)
+  return () => {
+    isCancelled = true
+    cancelAnimationFrame(frameId)
+  }
 }
 
 const createBackgroundLayer = (
@@ -76,26 +93,59 @@ const createBackgroundLayer = (
     ? createBackgroundDots({
         canvas,
         animator,
-        settingsRef: { current: backgroundDotsSettings },
+        settingsRef: {
+          current: {
+            ...backgroundDotsSettingsBase,
+            color: getThemeColor('--app-primary-bright-hsl', 0.15),
+          },
+        },
       })
     : createBackgroundPuffs({
         canvas,
         animator,
-        settingsRef: { current: backgroundPuffsSettings },
+        settingsRef: {
+          current: {
+            ...backgroundPuffsSettingsBase,
+            color: getThemeColor('--app-primary-bright-hsl', 0.25),
+          },
+        },
       })
 
 const BackgroundImage: Component<BackgroundProps> = (props) => {
   const location = useLocation()
   let pictureElement: HTMLPictureElement | undefined
+  let didTrackFilterTransition = false
+  let filterTransitionTimerId = 0
+  const [isRevealActive, setIsRevealActive] = createSignal(true)
+  const [isFilterTransitionActive, setIsFilterTransitionActive] = createSignal(false)
 
   onMount(() => {
     if (!pictureElement) {
       return
     }
 
-    const cancelReveal = animateBackgroundImageReveal(pictureElement)
+    const cancelReveal = animateBackgroundImageReveal(pictureElement, () => {
+      setIsRevealActive(false)
+    })
     onCleanup(cancelReveal)
   })
+
+  createEffect(() => {
+    void props.isBlurred
+
+    if (!didTrackFilterTransition) {
+      didTrackFilterTransition = true
+      return
+    }
+
+    setIsFilterTransitionActive(true)
+    window.clearTimeout(filterTransitionTimerId)
+    filterTransitionTimerId = window.setTimeout(() => {
+      setIsFilterTransitionActive(false)
+    }, introExitTransitionDurationMs)
+  })
+
+  onCleanup(() => window.clearTimeout(filterTransitionTimerId))
 
   const getFilter = (): string => {
     const pathname = location.pathname
@@ -107,16 +157,26 @@ const BackgroundImage: Component<BackgroundProps> = (props) => {
     return `brightness(${brightness}) blur(${blur}px)`
   }
 
+  const getWillChange = (): string => {
+    const properties = [
+      isRevealActive() ? 'transform, opacity' : '',
+      isFilterTransitionActive() ? 'filter' : '',
+    ].filter(Boolean)
+
+    return properties.length > 0 ? properties.join(', ') : 'auto'
+  }
+
   return (
     <picture
       ref={(element) => {
         pictureElement = element
       }}
-      class="absolute inset-0 op-60 [transform:scale(var(--background-image-scale,1.05))] [transform-origin:top_center] [transition-duration:var(--background-blur-transition-duration,220ms)] transition-[filter] ease-out will-change-[transform,opacity,filter]"
+      class="absolute inset-0 op-60 [transform:scale(var(--background-image-scale,1.05))] [transform-origin:top_center] [transition-duration:var(--background-blur-transition-duration,220ms)] transition-[filter] ease-out"
       style={{
         [backgroundImageScaleVarName]: `${backgroundImageInitialScale}`,
         [backgroundBlurTransitionDurationVarName]: `${introExitTransitionDurationMs}ms`,
         filter: getFilter(),
+        'will-change': getWillChange(),
       }}
     >
       <source media="(min-width: 1280px)" srcset={backgroundImageLargeWebp} type="image/webp" />
@@ -166,7 +226,7 @@ export const Background: Component<BackgroundProps> = (props) => (
       aria-hidden="true"
     >
       <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(50%_50%_at_50%_50%,#04252b_0%,#002424_0.01%,#001515_100%)]" />
+        <div class="absolute inset-0 [background:var(--app-background-radial-image)]" />
 
         <Animator duration={{ enter: 1 }}>
           <BackgroundImage isBlurred={props.isBlurred} />

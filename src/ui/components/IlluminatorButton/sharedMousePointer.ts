@@ -7,6 +7,8 @@ type SharedMousePointerListener = (pointer: SharedMousePointer) => void
 
 const listeners = new Set<SharedMousePointerListener>()
 let currentPointer: SharedMousePointer = null
+let pendingPointer: SharedMousePointer | undefined
+let animationFrameId = 0
 
 const notifyListeners = (pointer: SharedMousePointer): void => {
   currentPointer = pointer
@@ -16,14 +18,42 @@ const notifyListeners = (pointer: SharedMousePointer): void => {
   })
 }
 
+const flushPendingPointer = (): void => {
+  animationFrameId = 0
+
+  if (pendingPointer === undefined) {
+    return
+  }
+
+  const pointer = pendingPointer
+  pendingPointer = undefined
+  notifyListeners(pointer)
+}
+
+const schedulePointerNotification = (pointer: SharedMousePointer): void => {
+  pendingPointer = pointer
+
+  if (animationFrameId) {
+    return
+  }
+
+  animationFrameId = requestAnimationFrame(flushPendingPointer)
+}
+
 const handleMouseMove = (event: MouseEvent): void => {
-  notifyListeners({
+  schedulePointerNotification({
     clientX: event.clientX,
     clientY: event.clientY,
   })
 }
 
 const handleMouseLeave = (): void => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = 0
+  }
+
+  pendingPointer = undefined
   notifyListeners(null)
 }
 
@@ -54,6 +84,9 @@ export const subscribeSharedMousePointer = (listener: SharedMousePointerListener
 
     if (listeners.size === 0) {
       removeDocumentListeners()
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = 0
+      pendingPointer = undefined
       currentPointer = null
     }
   }

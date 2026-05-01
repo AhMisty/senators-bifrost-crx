@@ -1,39 +1,39 @@
-import styles from './BifrostBrand.module.css'
+import styles from './BrandLogo.module.css'
 
 import { type Component } from 'solid-js'
 
 import {
-  bifrostMarkSegments,
-  bifrostMarkViewBox,
-  bifrostTitleGlyphs,
-  bifrostTitleViewBox,
-} from '@/ui/components/IntroOverlay/introOverlayData'
+  brandMarkSegments,
+  brandMarkViewBox,
+  brandTitleGlyphs,
+  brandTitleViewBox,
+} from './brandLogoData'
 
-type BifrostBrandProps = {
+type BrandLogoProps = {
   active?: boolean
   class?: string
 }
 
-export const BifrostBrand: Component<BifrostBrandProps> = (props) => {
+export const BrandLogo: Component<BrandLogoProps> = (props) => {
   return (
     <div
       class={`${styles.brand} flex items-center gap-1.5 ${props.class ?? ''}`}
       data-active={props.active ?? true}
-      aria-label="BIFROST"
+      aria-label="Brand logo"
       role="img"
     >
       <svg
         class={`${styles.mark} overflow-visible`}
-        viewBox={bifrostMarkViewBox}
+        viewBox={brandMarkViewBox}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
         <g class={styles.cross}>
-          {bifrostMarkSegments.map((segment) => (
+          {brandMarkSegments.map((segment) => (
             <path
               d={segment.path}
               class={`${styles.armShape} ${styles.markSegment}`}
-              style={{ '--bifrost-brand-delay': `${segment.delaySeconds}s` }}
+              style={{ '--brand-logo-delay': `${segment.delaySeconds}s` }}
             />
           ))}
         </g>
@@ -41,14 +41,14 @@ export const BifrostBrand: Component<BifrostBrandProps> = (props) => {
 
       <svg
         class={`${styles.title} overflow-visible`}
-        viewBox={bifrostTitleViewBox}
+        viewBox={brandTitleViewBox}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
-        {bifrostTitleGlyphs.map((glyph) => (
+        {brandTitleGlyphs.map((glyph) => (
           <g
             class={styles.titleGlyph}
-            style={{ '--bifrost-brand-delay': `${glyph.delaySeconds}s` }}
+            style={{ '--brand-logo-delay': `${glyph.delaySeconds}s` }}
             transform={glyph.transform}
           >
             {glyph.paths.map((path) => (

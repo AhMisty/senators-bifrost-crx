@@ -1,13 +1,53 @@
 :root {
   color-scheme: dark;
-  --app-background-color: hsl(180 20% 4%);
-  --app-text-color: hsl(0 0% 93.33%);
-  --app-selection-text-color: hsl(180 20% 4%);
-  --app-selection-background-color: hsl(180 68.07% 53.33% / 0.88);
-  --app-scrollbar-thumb-color: rgb(34 120 214);
-  --arwes-frames-bg-color: hsl(180 69.23% 15.29% / 0.15);
-  --arwes-frames-line-color: hsl(180 69.23% 15.29% / 0.8);
-  --arwes-frames-deco-color: hsl(180 68.18% 25.88% / 0.8);
+  --app-background-hsl: 180 20% 4%;
+  --app-text-hsl: 0 0% 93.33%;
+  --app-primary-hsl: 180 68.07% 53.33%;
+  --app-primary-bright-hsl: 180 100% 70%;
+  --app-primary-main-hsl: 180 68.14% 44.31%;
+  --app-primary-muted-hsl: 180 68.18% 67.65%;
+  --app-primary-line-hsl: 180 68.18% 25.88%;
+  --app-primary-panel-hsl: 180 69.23% 15.29%;
+  --app-primary-surface-hsl: 180 69.23% 7.65%;
+  --app-primary-surface-focus-hsl: 180 69.23% 8.8%;
+  --app-primary-control-hsl: 180 68.07% 16%;
+  --app-primary-control-active-hsl: 180 68.07% 20%;
+  --app-primary-input-text-hsl: 180 68.07% 82%;
+  --app-primary-input-text-high-hsl: 180 68.07% 88%;
+  --app-accent-hsl: 60 68.85% 47.84%;
+  --app-accent-text-hsl: 60 67.78% 64.71%;
+  --app-accent-hover-hsl: 60 90% 64.71%;
+  --app-accent-active-hsl: 60 100% 78%;
+  --app-background-color: hsl(var(--app-background-hsl));
+  --app-text-color: hsl(var(--app-text-hsl));
+  --app-primary-color: hsl(var(--app-primary-hsl));
+  --app-primary-bright-color: hsl(var(--app-primary-bright-hsl));
+  --app-primary-main-color: hsl(var(--app-primary-main-hsl));
+  --app-primary-muted-color: hsl(var(--app-primary-muted-hsl));
+  --app-primary-line-color: hsl(var(--app-primary-line-hsl));
+  --app-primary-panel-color: hsl(var(--app-primary-panel-hsl));
+  --app-primary-surface-color: hsl(var(--app-primary-surface-hsl));
+  --app-primary-surface-focus-color: hsl(var(--app-primary-surface-focus-hsl));
+  --app-primary-control-color: hsl(var(--app-primary-control-hsl));
+  --app-primary-control-active-color: hsl(var(--app-primary-control-active-hsl));
+  --app-primary-input-text-color: hsl(var(--app-primary-input-text-hsl));
+  --app-primary-input-text-high-color: hsl(var(--app-primary-input-text-high-hsl));
+  --app-accent-color: hsl(var(--app-accent-hsl));
+  --app-accent-text-color: hsl(var(--app-accent-text-hsl));
+  --app-accent-hover-color: hsl(var(--app-accent-hover-hsl));
+  --app-accent-active-color: hsl(var(--app-accent-active-hsl));
+  --app-selection-text-color: hsl(var(--app-background-hsl));
+  --app-selection-background-color: hsl(var(--app-primary-hsl) / 0.88);
+  --app-scrollbar-thumb-color: hsl(var(--app-primary-line-hsl) / 0.8);
+  --app-background-radial-image: radial-gradient(
+    50% 50% at 50% 50%,
+    hsl(var(--app-primary-panel-hsl) / 0.55) 0%,
+    hsl(var(--app-primary-panel-hsl) / 0.42) 0.01%,
+    var(--app-background-color) 100%
+  );
+  --arwes-frames-bg-color: hsl(var(--app-primary-panel-hsl) / 0.15);
+  --arwes-frames-line-color: hsl(var(--app-primary-panel-hsl) / 0.8);
+  --arwes-frames-deco-color: hsl(var(--app-primary-line-hsl) / 0.8);
   --app-font-family: 'Titillium Web', sans-serif;
   --app-font-family-header: var(--app-font-family);
   --app-font-family-body: var(--app-font-family);

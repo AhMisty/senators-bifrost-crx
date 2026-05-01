@@ -4,9 +4,9 @@
   height: 2.75rem;
   border: 1px solid var(--arwes-frames-line-color);
   border-radius: 0;
-  background: hsl(180 69.23% 7.65% / 0.72);
-  color: hsl(180 68.07% 82% / 0.96);
-  caret-color: hsl(180 68.07% 53.33% / 0.96);
+  background: hsl(var(--app-primary-surface-hsl) / 0.72);
+  color: hsl(var(--app-primary-input-text-hsl) / 0.96);
+  caret-color: hsl(var(--app-primary-hsl) / 0.96);
   cursor: text;
   font-family: var(--app-font-family-body);
   font-size: 1rem;
@@ -22,26 +22,26 @@
 }
 
 .input::placeholder {
-  color: hsl(180 68.18% 67.65% / 0.34);
+  color: hsl(var(--app-primary-muted-hsl) / 0.34);
 }
 
 .input:disabled {
-  color: hsl(180 68.18% 67.65% / 0.52);
+  color: hsl(var(--app-primary-muted-hsl) / 0.52);
   cursor: not-allowed;
   opacity: 0.72;
 }
 
 .input:not(:disabled):hover {
-  border-color: hsl(180 68.18% 25.88% / 0.96);
+  border-color: hsl(var(--app-primary-line-hsl) / 0.96);
 }
 
 .input:not(:disabled):focus {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  background: hsl(180 69.23% 8.8% / 0.82);
+  border-color: hsl(var(--app-primary-hsl) / 0.92);
+  background: hsl(var(--app-primary-surface-focus-hsl) / 0.82);
   box-shadow:
-    inset 0 0 0 1px hsl(180 68.07% 53.33% / 0.42),
-    0 0 1.125rem hsl(180 68.07% 53.33% / 0.18);
-  color: hsl(180 68.07% 88% / 0.98);
+    inset 0 0 0 1px hsl(var(--app-primary-hsl) / 0.42),
+    0 0 1.125rem hsl(var(--app-primary-hsl) / 0.18);
+  color: hsl(var(--app-primary-input-text-high-hsl) / 0.98);
 }
 
 .button {
@@ -49,8 +49,8 @@
   height: 2.375rem;
   border: 1px solid var(--arwes-frames-line-color);
   border-radius: 0;
-  background: hsl(180 69.23% 7.65% / 0.72);
-  color: hsl(180 68.18% 67.65% / 0.9);
+  background: hsl(var(--app-primary-surface-hsl) / 0.72);
+  color: hsl(var(--app-primary-muted-hsl) / 0.9);
   cursor: pointer;
   font-family: var(--app-font-family-body);
   font-size: 0.9375rem;
@@ -67,16 +67,16 @@
 
 .button:hover:not(:disabled),
 .button:focus-visible {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  box-shadow: 0 0 1rem hsl(180 68.07% 53.33% / 0.16);
+  border-color: hsl(var(--app-primary-hsl) / 0.92);
+  box-shadow: 0 0 1rem hsl(var(--app-primary-hsl) / 0.16);
   color: var(--app-text-color);
 }
 
 .button:active:not(:disabled) {
-  background: hsl(180 68.07% 20% / 0.82);
+  background: hsl(var(--app-primary-control-active-hsl) / 0.82);
   box-shadow:
-    inset 0 0 0.75rem hsl(180 68.07% 53.33% / 0.12),
-    0 0 0.75rem hsl(180 68.07% 53.33% / 0.12);
+    inset 0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12),
+    0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12);
 }
 
 .button:disabled {
@@ -85,8 +85,8 @@
 }
 
 .buttonPrimary {
-  background: hsl(180 68.07% 16% / 0.78);
-  color: hsl(180 68.07% 78% / 0.96);
+  background: hsl(var(--app-primary-control-hsl) / 0.78);
+  color: hsl(var(--app-primary-input-text-hsl) / 0.96);
 }
 
 .switch {
@@ -99,7 +99,7 @@
 
 .switchStatus {
   min-width: 1rem;
-  color: hsl(180 68.18% 67.65% / 0.74);
+  color: hsl(var(--app-primary-muted-hsl) / 0.74);
   cursor: default;
   font-family: var(--app-font-family-body);
   font-size: 0.875rem;
@@ -136,7 +136,7 @@
   width: 3.5rem;
   height: 1.625rem;
   border: 1px solid var(--arwes-frames-line-color);
-  background: hsl(180 69.23% 7.65% / 0.78);
+  background: hsl(var(--app-primary-surface-hsl) / 0.78);
   cursor: inherit;
   transition:
     background 160ms ease,
@@ -151,7 +151,7 @@
   left: 0.25rem;
   width: 1rem;
   height: 1rem;
-  background: hsl(180 68.18% 67.65% / 0.62);
+  background: hsl(var(--app-primary-muted-hsl) / 0.62);
   cursor: inherit;
   transition:
     background 160ms ease,
@@ -159,13 +159,13 @@
 }
 
 .switchInput:checked + .switchTrack {
-  border-color: hsl(180 68.07% 53.33% / 0.92);
-  background: hsl(180 68.07% 16% / 0.78);
-  box-shadow: 0 0 1rem hsl(180 68.07% 53.33% / 0.18);
+  border-color: hsl(var(--app-primary-hsl) / 0.92);
+  background: hsl(var(--app-primary-control-hsl) / 0.78);
+  box-shadow: 0 0 1rem hsl(var(--app-primary-hsl) / 0.18);
 }
 
 .switchInput:checked + .switchTrack .switchThumb {
-  background: hsl(180 68.07% 53.33% / 0.96);
+  background: hsl(var(--app-primary-hsl) / 0.96);
   transform: translateX(1.875rem);
 }
 
@@ -174,11 +174,11 @@
 }
 
 .switchInput:not(:disabled):hover + .switchTrack {
-  border-color: hsl(180 68.18% 25.88% / 0.96);
+  border-color: hsl(var(--app-primary-line-hsl) / 0.96);
 }
 
 .switchInput:not(:disabled):focus-visible + .switchTrack {
   box-shadow:
-    inset 0 0 0 1px hsl(180 68.07% 53.33% / 0.42),
-    0 0 1.125rem hsl(180 68.07% 53.33% / 0.18);
+    inset 0 0 0 1px hsl(var(--app-primary-hsl) / 0.42),
+    0 0 1.125rem hsl(var(--app-primary-hsl) / 0.18);
 }

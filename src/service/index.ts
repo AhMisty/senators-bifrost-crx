@@ -1,4 +1,5 @@
 import { routes } from '@/shared/routes'
+import '@/service/connectionRedirect'
 import '@/service/spa'
 
 chrome.runtime.onInstalled.addListener(() => {

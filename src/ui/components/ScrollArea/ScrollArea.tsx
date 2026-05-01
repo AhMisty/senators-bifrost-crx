@@ -11,7 +11,7 @@ const scrollAreaOptions: PartialOptions = {
     y: 'scroll',
   },
   scrollbars: {
-    theme: 'os-theme-bifrost',
+    theme: 'os-theme-app',
     visibility: 'auto',
     autoHide: 'never',
     dragScroll: true,

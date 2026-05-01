@@ -2,7 +2,7 @@ import styles from './FormControls.module.css'
 
 import { createUniqueId, splitProps, type Component, type JSX } from 'solid-js'
 
-type BifrostSwitchProps = Omit<
+type ControlSwitchProps = Omit<
   JSX.InputHTMLAttributes<HTMLInputElement>,
   'children' | 'onChange' | 'type'
 > & {
@@ -11,7 +11,7 @@ type BifrostSwitchProps = Omit<
   onChange?: (checked: boolean, event: Event) => void
 }
 
-export const BifrostSwitch: Component<BifrostSwitchProps> = (props) => {
+export const ControlSwitch: Component<ControlSwitchProps> = (props) => {
   const fallbackId = createUniqueId()
   const [localProps, inputProps] = splitProps(props, [
     'checked',

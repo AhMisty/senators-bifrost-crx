@@ -1,3 +1,3 @@
-export { BifrostButton } from './BifrostButton'
-export { BifrostInput } from './BifrostInput'
-export { BifrostSwitch } from './BifrostSwitch'
+export { ControlButton } from './ControlButton'
+export { ControlInput } from './ControlInput'
+export { ControlSwitch } from './ControlSwitch'

@@ -124,7 +124,7 @@ export const LineFrame: Component<LineFrameProps> = (props) => {
             ref={(element) => {
               headingElement = element
             }}
-            class={`${styles.title} m-0 flex items-center font-[var(--app-font-family-header)] leading-none font-light text-[hsl(180_68.14%_44.31%)]`}
+            class={`${styles.title} m-0 flex items-center font-[var(--app-font-family-header)] leading-none font-light text-[var(--app-primary-main-color)]`}
           >
             {props.title}
           </div>

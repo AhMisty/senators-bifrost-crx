@@ -1,15 +1,15 @@
 .brand {
-  color: hsl(180 68.07% 53.33%);
+  color: var(--app-primary-color);
 }
 
 .mark {
   width: clamp(1.5rem, 1.12rem + 0.8vw, 2rem);
   height: clamp(1.5rem, 1.12rem + 0.8vw, 2rem);
-  filter: drop-shadow(0 0 4px hsl(180 100% 70% / 0.34));
+  filter: drop-shadow(0 0 4px hsl(var(--app-primary-bright-hsl) / 0.34));
 }
 
 .cross {
-  filter: drop-shadow(0 0 4px hsl(180 100% 70% / 0.36));
+  filter: drop-shadow(0 0 4px hsl(var(--app-primary-bright-hsl) / 0.36));
 }
 
 .armShape,
@@ -20,31 +20,30 @@
 .markSegment,
 .titleGlyph {
   opacity: 0;
-  will-change: opacity, transform;
 }
 
 .brand[data-active='true'] .markSegment {
-  animation: bifrost-brand-mark-in 420ms cubic-bezier(0.12, 0.78, 0.24, 1) forwards;
-  animation-delay: var(--bifrost-brand-delay);
+  animation: brand-logo-mark-in 420ms cubic-bezier(0.12, 0.78, 0.24, 1) forwards;
+  animation-delay: var(--brand-logo-delay);
 }
 
 .brand[data-active='true'] .titleGlyph {
-  animation: bifrost-brand-title-in 320ms linear forwards;
-  animation-delay: calc(160ms + var(--bifrost-brand-delay));
+  animation: brand-logo-title-in 320ms linear forwards;
+  animation-delay: calc(160ms + var(--brand-logo-delay));
 }
 
 .title {
   width: auto;
   height: clamp(1rem, 0.8rem + 0.4vw, 1.25rem);
   shape-rendering: geometricPrecision;
-  filter: drop-shadow(0 0 5px hsl(180 100% 70% / 0.42));
+  filter: drop-shadow(0 0 5px hsl(var(--app-primary-bright-hsl) / 0.42));
 }
 
 .titleFill {
   shape-rendering: geometricPrecision;
 }
 
-@keyframes bifrost-brand-mark-in {
+@keyframes brand-logo-mark-in {
   0% {
     opacity: 0;
     transform: scale(0.9);
@@ -61,7 +60,7 @@
   }
 }
 
-@keyframes bifrost-brand-title-in {
+@keyframes brand-logo-title-in {
   0% {
     opacity: 0;
     transform: translateY(4px);

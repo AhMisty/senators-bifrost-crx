@@ -12,8 +12,12 @@
 
 .scrim {
   background:
-    radial-gradient(circle at center, hsl(180 69.23% 15.29% / 0.08) 0%, transparent 46%),
-    linear-gradient(180deg, hsl(180 20% 4% / 0.1) 0%, hsl(180 20% 4% / 0.22) 100%);
+    radial-gradient(circle at center, hsl(var(--app-primary-panel-hsl) / 0.08) 0%, transparent 46%),
+    linear-gradient(
+      180deg,
+      hsl(var(--app-background-hsl) / 0.1) 0%,
+      hsl(var(--app-background-hsl) / 0.22) 100%
+    );
 }
 
 .center {
@@ -25,8 +29,8 @@
 .halo {
   background: radial-gradient(
     circle,
-    hsl(180 68.07% 53.33% / 0.28) 0%,
-    hsl(180 68.59% 37.45% / 0.1) 44%,
+    hsl(var(--app-primary-hsl) / 0.28) 0%,
+    hsl(var(--app-primary-main-hsl) / 0.1) 44%,
     transparent 72%
   );
   animation: intro-overlay-halo-breathe 4.8s ease-in-out infinite;
@@ -39,7 +43,7 @@
 }
 
 .cross {
-  filter: drop-shadow(0 0 8px hsl(180 100% 70% / 0.5));
+  filter: drop-shadow(0 0 8px hsl(var(--app-primary-bright-hsl) / 0.5));
 }
 
 .orbit,
@@ -79,11 +83,11 @@
 }
 
 .armShape {
-  fill: #00ffff;
+  fill: var(--app-primary-bright-color);
 }
 
 .corePulse {
-  stroke: hsl(180 68.07% 53.33% / 0.6);
+  stroke: hsl(var(--app-primary-hsl) / 0.6);
   stroke-width: 2.4;
   opacity: 0;
   transform-box: fill-box;
@@ -98,7 +102,7 @@
 
 .title {
   shape-rendering: geometricPrecision;
-  filter: drop-shadow(0 0 8px hsl(180 100% 70% / 0.5));
+  filter: drop-shadow(0 0 8px hsl(var(--app-primary-bright-hsl) / 0.5));
 }
 
 .titleGlyph {
@@ -110,7 +114,7 @@
 
 .titleFill {
   shape-rendering: geometricPrecision;
-  fill: #00ffff;
+  fill: var(--app-primary-bright-color);
 }
 
 @keyframes intro-overlay-center-in {

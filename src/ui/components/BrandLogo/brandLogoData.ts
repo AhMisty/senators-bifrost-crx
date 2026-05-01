@@ -1,26 +1,26 @@
-type BifrostMarkSegment = {
+type BrandMarkSegment = {
   path: string
   offsetX: number
   offsetY: number
   delaySeconds: number
 }
 
-type BifrostTitlePath = {
+type BrandTitlePath = {
   d: string
   fillRule?: 'evenodd'
 }
 
-type BifrostTitleGlyph = {
+type BrandTitleGlyph = {
   delaySeconds: number
-  paths: readonly BifrostTitlePath[]
+  paths: readonly BrandTitlePath[]
   transform?: string
 }
 
 const titleDelayStepSeconds = 0.024
 
-export const bifrostMarkViewBox = '0 0 570 570'
+export const brandMarkViewBox = '0 0 570 570'
 
-export const bifrostMarkSegments: readonly BifrostMarkSegment[] = [
+export const brandMarkSegments: readonly BrandMarkSegment[] = [
   {
     path: 'M285 0 L320 100 L285 200 L250 100 Z',
     offsetX: 0,
@@ -47,9 +47,9 @@ export const bifrostMarkSegments: readonly BifrostMarkSegment[] = [
   },
 ] as const
 
-export const bifrostTitleViewBox = '67.002 401.522 2425.208 276.8'
+export const brandTitleViewBox = '67.002 401.522 2425.208 276.8'
 
-export const bifrostTitleGlyphs: readonly BifrostTitleGlyph[] = [
+export const brandTitleGlyphs: readonly BrandTitleGlyph[] = [
   {
     delaySeconds: 0,
     paths: [

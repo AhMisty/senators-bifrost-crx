@@ -9,10 +9,17 @@ const extensionIcons = {
   128: iconFile,
 } as const
 const workURL = '*://*/*'
+const packageName = pkg.name.split('/').at(-1) ?? ''
+const extensionSlug = packageName.replace(/^senators-/, '').replace(/-crx$/, '')
+const extensionName = extensionSlug
+  .split('-')
+  .filter(Boolean)
+  .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+  .join(' ')
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Bifrost',
+  name: extensionName,
   version: pkg.version,
   description: pkg.description,
   icons: extensionIcons,

@@ -2,7 +2,7 @@ import { Navigate, Route, Router, type RouteSectionProps } from '@solidjs/router
 import { Show, createSignal, type Component } from 'solid-js'
 
 import { Background } from '@/ui/components/Background/Background'
-import { BifrostBrand } from '@/ui/components/BifrostBrand'
+import { BrandLogo } from '@/ui/components/BrandLogo'
 import { IntroOverlay } from '@/ui/components/IntroOverlay/IntroOverlay'
 import { introExitTransitionDurationMs } from '@/ui/components/IntroOverlay/introOverlayTimings'
 import { LineFrame } from '@/ui/components/LineFrame'
@@ -36,7 +36,7 @@ const AppShell: Component<RouteSectionProps> = (props) => {
           '--app-enter-duration': `${introExitTransitionDurationMs}ms`,
         }}
       >
-        <LineFrame active={isAppEntering()} title={<BifrostBrand active={isAppEntering()} />}>
+        <LineFrame active={isAppEntering()} title={<BrandLogo active={isAppEntering()} />}>
           {props.children}
         </LineFrame>
       </div>

@@ -6,6 +6,9 @@ import zip from 'vite-plugin-zip-pack'
 import manifest from './manifest.config'
 import pkg from './package.json'
 
+const packageName = pkg.name.split('/').at(-1) ?? 'extension'
+const extensionSlug = packageName.replace(/^senators-/, '').replace(/-crx$/, '') || packageName
+
 export default defineConfig({
   plugins: [
     unocss(),
@@ -14,7 +17,7 @@ export default defineConfig({
     zip({
       inDir: `out/${pkg.version}`,
       outDir: 'out',
-      outFileName: `bifrost-${pkg.version}.zip`,
+      outFileName: `${extensionSlug}-${pkg.version}.zip`,
     }),
   ],
   build: {

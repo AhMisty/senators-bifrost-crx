@@ -2,12 +2,12 @@ import styles from './FormControls.module.css'
 
 import { splitProps, type Component, type JSX } from 'solid-js'
 
-type BifrostButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
+type ControlButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: JSX.Element
   variant?: 'primary' | 'secondary'
 }
 
-export const BifrostButton: Component<BifrostButtonProps> = (props) => {
+export const ControlButton: Component<ControlButtonProps> = (props) => {
   const [localProps, buttonProps] = splitProps(props, ['children', 'class', 'type', 'variant'])
   const variantClass = localProps.variant === 'primary' ? styles.buttonPrimary : ''
 

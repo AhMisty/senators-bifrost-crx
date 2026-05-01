@@ -1,26 +1,26 @@
 .button {
-  color: hsl(60 67.78% 64.71%);
+  color: var(--app-accent-text-color);
   cursor: pointer;
   transition: color 200ms ease-out;
 }
 
 .button:hover:not(:disabled) {
-  color: hsl(60 90% 64.71%);
+  color: var(--app-accent-hover-color);
 }
 
 .button:active:not(:disabled) {
-  color: hsl(60 100% 78%);
+  color: var(--app-accent-active-color);
 }
 
 .button:focus-visible {
-  outline: 1px dotted hsl(60 90% 64.71% / 0.8);
+  outline: 1px dotted hsl(var(--app-accent-hover-hsl) / 0.8);
   outline-offset: 4px;
 }
 
 .frame {
   opacity: 0.3;
   transition: opacity 200ms ease-out;
-  filter: drop-shadow(0 0 0.5rem hsl(60 68.85% 47.84%));
+  filter: drop-shadow(0 0 0.5rem var(--app-accent-color));
 }
 
 .button:hover:not(:disabled) .frame {
@@ -43,7 +43,6 @@
   opacity: 0;
   transform: translate(-9999px, -9999px);
   transition: opacity 200ms ease-out;
-  will-change: transform, opacity;
 }
 
 .content > svg {

@@ -3,14 +3,12 @@
 }
 
 .cardItem {
-  --options-card-enter-index: 0;
-
   width: 100%;
 }
 
 .cardItem[data-entered='false'] {
   animation: options-view-card-enter 800ms ease-out both;
-  animation-delay: calc(var(--options-card-enter-index) * 50ms);
+  animation-delay: calc(var(--options-card-enter-index, 0) * 50ms);
 }
 
 .cardItem[data-entered='true'] {
@@ -23,38 +21,6 @@
   animation-play-state: paused;
 }
 
-.cardList > .cardItem:nth-child(2) {
-  --options-card-enter-index: 1;
-}
-
-.cardList > .cardItem:nth-child(3) {
-  --options-card-enter-index: 2;
-}
-
-.cardList > .cardItem:nth-child(4) {
-  --options-card-enter-index: 3;
-}
-
-.cardList > .cardItem:nth-child(5) {
-  --options-card-enter-index: 4;
-}
-
-.cardList > .cardItem:nth-child(6) {
-  --options-card-enter-index: 5;
-}
-
-.cardList > .cardItem:nth-child(7) {
-  --options-card-enter-index: 6;
-}
-
-.cardList > .cardItem:nth-child(8) {
-  --options-card-enter-index: 7;
-}
-
-.cardList > .cardItem:nth-child(n + 9) {
-  --options-card-enter-index: 8;
-}
-
 .cardContent {
   position: relative;
   display: flex;
@@ -65,7 +31,7 @@
 
 .title {
   margin: 0;
-  color: hsl(180 68.14% 44.31%);
+  color: var(--app-primary-main-color);
   font-family: var(--app-font-family-header);
   font-size: 1.25rem;
   font-weight: 300;
@@ -102,12 +68,12 @@
   cursor: not-allowed;
 }
 
-.accelerationField {
+.originField {
   animation: options-view-field-in 180ms ease-out both;
 }
 
 .fieldLabel {
-  color: hsl(180 68.18% 67.65% / 0.86);
+  color: hsl(var(--app-primary-muted-hsl) / 0.86);
   cursor: inherit;
   font-family: var(--app-font-family-body);
   font-size: 0.875rem;
@@ -135,7 +101,7 @@
 .feedback {
   flex: 0 1 auto;
   min-height: 1rem;
-  color: hsl(180 68.18% 67.65% / 0.62);
+  color: hsl(var(--app-primary-muted-hsl) / 0.62);
   font-family: var(--app-font-family-body);
   font-size: 0.8125rem;
   line-height: 1;

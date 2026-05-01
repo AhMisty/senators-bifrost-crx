@@ -1,1 +1,0 @@
-export { BifrostBrand } from './BifrostBrand'

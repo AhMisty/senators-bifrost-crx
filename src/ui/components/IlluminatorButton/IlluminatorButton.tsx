@@ -12,7 +12,7 @@ import {
 } from 'solid-js'
 
 const defaultGlowSizePx = 240
-const defaultGlowColor = 'hsl(60 68.85% 47.84% / 0.2)'
+const defaultGlowColor = 'hsl(var(--app-accent-hsl) / 0.2)'
 const frameCornerLengthPx = 8
 const frameStrokeWidthPx = 1
 const frameMinimumSizePx = frameCornerLengthPx + frameStrokeWidthPx
