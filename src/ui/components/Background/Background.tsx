@@ -23,6 +23,7 @@ const backgroundImageInitialScale = 1.05
 const backgroundImageEnterDurationMs = 1000
 const backgroundImageScaleVarName = '--background-image-scale'
 const backgroundBlurTransitionDurationVarName = '--background-blur-transition-duration'
+const backgroundPrimaryBrightHslFallback = '180 100% 70%'
 const indexPaths = new Set<string>(redirectRoutes)
 
 type BackgroundLayerKind = 'dots' | 'puffs'
@@ -36,11 +37,14 @@ type BackgroundLayerProps = {
 
 const easeOutExpo = (value: number): number => (value === 1 ? 1 : 1 - 2 ** (-10 * value))
 
-const getThemeHsl = (tokenName: string): string =>
-  getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
+const getThemeHsl = (tokenName: string, fallback: string): string => {
+  const tokenValue = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
 
-const getThemeColor = (tokenName: string, alpha: number): string =>
-  `hsl(${getThemeHsl(tokenName)} / ${alpha})`
+  return tokenValue || fallback
+}
+
+const getThemeColor = (tokenName: string, fallback: string, alpha: number): string =>
+  `hsl(${getThemeHsl(tokenName, fallback)} / ${alpha})`
 
 const setBackgroundImageState = (element: HTMLElement, opacity: number, scale: number): void => {
   element.style.opacity = `${opacity}`
@@ -96,7 +100,11 @@ const createBackgroundLayer = (
         settingsRef: {
           current: {
             ...backgroundDotsSettingsBase,
-            color: getThemeColor('--app-primary-bright-hsl', 0.15),
+            color: getThemeColor(
+              '--app-primary-bright-hsl',
+              backgroundPrimaryBrightHslFallback,
+              0.15,
+            ),
           },
         },
       })
@@ -106,7 +114,11 @@ const createBackgroundLayer = (
         settingsRef: {
           current: {
             ...backgroundPuffsSettingsBase,
-            color: getThemeColor('--app-primary-bright-hsl', 0.25),
+            color: getThemeColor(
+              '--app-primary-bright-hsl',
+              backgroundPrimaryBrightHslFallback,
+              0.25,
+            ),
           },
         },
       })

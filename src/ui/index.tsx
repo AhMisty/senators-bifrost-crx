@@ -1,4 +1,4 @@
-import '@/ui/styles/index.module.css'
+import '@/ui/styles/index.css'
 import 'uno.css'
 
 import { render } from 'solid-js/web'
