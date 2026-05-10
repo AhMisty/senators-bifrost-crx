@@ -195,6 +195,15 @@ const removeGameTokenCookie = async (gameUrl: URL): Promise<void> => {
   })
 }
 
+const getGameTokenCookie = async (gameUrl: URL): Promise<string | null> => {
+  const cookie = await chrome.cookies.get({
+    url: `${gameUrl.origin}/`,
+    name: sharedConfig.token,
+  })
+
+  return cookie?.value ?? null
+}
+
 const createActiveAccountRequestHeaderRule = (
   gameUrl: URL,
   ip: string,
@@ -205,14 +214,9 @@ const createActiveAccountRequestHeaderRule = (
     type: 'modifyHeaders',
     requestHeaders: [
       {
-        header: 'X-Forwarded-For',
-        operation: 'set',
-        value: ip,
-      },
-      {
         header: 'Forwarded',
         operation: 'set',
-        value: ip,
+        value: `for=${ip}`,
       },
     ],
   },
@@ -257,6 +261,47 @@ const applyActiveAccountSideEffects = async (
   }
 
   await removeGameTokenCookie(gameUrl)
+}
+
+const syncActiveAccountFromGameCookie = async (gameUrl: URL): Promise<void> => {
+  const state = await loadAccountState()
+  const cookieToken = await getGameTokenCookie(gameUrl)
+  const matchedAccount = cookieToken
+    ? state.accounts.find((account) => account.token === cookieToken) ?? null
+    : null
+  const nextActiveAccountId = matchedAccount?.id ?? null
+
+  if (state.activeAccountId === nextActiveAccountId) {
+    if (matchedAccount) {
+      await updateActiveAccountRequestHeaderRule(gameUrl, matchedAccount)
+    } else {
+      await removeActiveAccountRequestHeaderRule()
+    }
+
+    return
+  }
+
+  if (matchedAccount) {
+    await updateActiveAccountRequestHeaderRule(gameUrl, matchedAccount)
+  } else {
+    await removeActiveAccountRequestHeaderRule()
+  }
+
+  await saveAccountState({
+    ...state,
+    activeAccountId: nextActiveAccountId,
+  })
+}
+
+const syncActiveAccountFromConfiguredGameCookie = async (): Promise<void> => {
+  const gameUrl = await getConfiguredGameUrl()
+
+  if (!gameUrl) {
+    await removeActiveAccountRequestHeaderRule()
+    return
+  }
+
+  await syncActiveAccountFromGameCookie(gameUrl)
 }
 
 const updateAccount = async (
@@ -352,9 +397,7 @@ const useAccount = async (accountId: string): Promise<AccountState> => {
     await removeGameTokenCookie(gameUrl)
   }
 
-  const didAuthenticate = Boolean(
-    await operator.get({ url: '/game.php?page=control' }).catch(() => false),
-  )
+  const didAuthenticate = await operator.updateControl()
   const now = Date.now()
 
   if (!didAuthenticate || !operator.token) {
@@ -423,6 +466,10 @@ const queueActiveAccountSideEffectsRefresh = (
   void runAccountTask(() => refreshActiveAccountSideEffects(options, previousOptions)).catch(
     () => undefined,
   )
+}
+
+const queueActiveAccountCookieSync = (): void => {
+  void runAccountTask(syncActiveAccountFromConfiguredGameCookie).catch(() => undefined)
 }
 
 const handleAccountMessage = async (message: AccountMessage): Promise<AccountMessageResult> => {
@@ -494,11 +541,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 })
 
 chrome.runtime.onInstalled.addListener(() => {
-  queueActiveAccountSideEffectsRefresh()
+  queueActiveAccountCookieSync()
 })
 
 chrome.runtime.onStartup.addListener(() => {
-  queueActiveAccountSideEffectsRefresh()
+  queueActiveAccountCookieSync()
 })
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -510,4 +557,12 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
       normalizeConnectionOptions(optionsChange.oldValue),
     )
   }
+})
+
+chrome.cookies.onChanged.addListener(({ cookie }) => {
+  if (cookie.name !== sharedConfig.token) {
+    return
+  }
+
+  queueActiveAccountCookieSync()
 })
