@@ -3,8 +3,8 @@
 }
 
 .mark {
-  width: clamp(1.5rem, 1.12rem + 0.8vw, 2rem);
-  height: clamp(1.5rem, 1.12rem + 0.8vw, 2rem);
+  width: 2.25rem;
+  height: 2.25rem;
   filter: drop-shadow(0 0 4px hsl(var(--app-primary-bright-hsl) / 0.34));
 }
 
@@ -34,7 +34,7 @@
 
 .title {
   width: auto;
-  height: clamp(1rem, 0.8rem + 0.4vw, 1.25rem);
+  height: 1.125rem;
   shape-rendering: geometricPrecision;
   filter: drop-shadow(0 0 5px hsl(var(--app-primary-bright-hsl) / 0.42));
 }

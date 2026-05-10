@@ -13,20 +13,22 @@ const handleSpaNavigation = async (request: Request): Promise<Response> => {
 
 const isFetchEvent = (event: Event): event is FetchEvent => event instanceof FetchEvent
 
-globalThis.addEventListener('fetch', (event: Event) => {
-  if (!isFetchEvent(event)) {
-    return
-  }
+if (!import.meta.env.DEV) {
+  globalThis.addEventListener('fetch', (event: Event) => {
+    if (!isFetchEvent(event)) {
+      return
+    }
 
-  const { request } = event
+    const { request } = event
 
-  if (
-    request.method !== 'GET' ||
-    request.mode !== 'navigate' ||
-    new URL(request.url).origin !== extensionOrigin
-  ) {
-    return
-  }
+    if (
+      request.method !== 'GET' ||
+      request.mode !== 'navigate' ||
+      new URL(request.url).origin !== extensionOrigin
+    ) {
+      return
+    }
 
-  event.respondWith(handleSpaNavigation(request))
-})
+    event.respondWith(handleSpaNavigation(request))
+  })
+}

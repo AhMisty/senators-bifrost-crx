@@ -3,16 +3,18 @@ import styles from './SidePanelView.module.css'
 import { For, Show, createSignal, onCleanup, onMount, type Component } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
 
+import { AccountCard } from '@/ui/components/AccountCard'
 import { CardFrameList, CardFrameListItem } from '@/ui/components/CardFrameList'
-import { ControlButton, ControlInput } from '@/ui/components/FormControls'
+import { ControlButton } from '@/ui/components/FormControls'
 import {
   accountStorageAreaName,
   accountStorageKey,
   defaultAccountState,
   normalizeAccountState,
+  type AccountFormDraft,
   type AccountRecord,
   type AccountState,
-  type AccountValidity,
+  type UpdateAccountInput,
 } from '@/shared/accounts'
 import {
   isAccountMessageResponse,
@@ -20,37 +22,13 @@ import {
   type AccountMessageResult,
 } from '@/shared/accountMessages'
 
-type AccountDraft = {
-  universe: string
-  username: string
-  password: string
-  ip: string
-}
-
-type AccountCardProps = {
-  account: AccountRecord
-  isActive: boolean
-  isPasswordVisible: boolean
-  isUsePending: boolean
-  isUsing: boolean
-  onTogglePassword: (accountId: string) => void
-  onUse: (accountId: string) => void
-}
-
-const accountValidityLabels = {
-  unknown: '未知',
-  valid: '有效',
-  invalid: '无效',
-} as const satisfies Record<AccountValidity, string>
-
-const defaultAccountDraft: AccountDraft = {
+const defaultAccountDraft: AccountFormDraft = {
   universe: '1',
   username: '',
   password: '',
   ip: '',
+  token: '',
 }
-
-const createPasswordMask = (password: string): string => '*'.repeat(Math.max(password.length, 6))
 
 const sendAccountMessage = async (message: AccountMessage): Promise<AccountMessageResult> => {
   if (typeof chrome === 'undefined') {
@@ -70,156 +48,164 @@ const sendAccountMessage = async (message: AccountMessage): Promise<AccountMessa
   return response.result
 }
 
-const EyeIcon: Component<{ isOpen: boolean }> = (props) => (
-  <svg
-    class={styles.eyeIcon}
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.8"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <Show
-      when={props.isOpen}
-      fallback={
-        <>
-          <path d="M3 3l18 18" />
-          <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-          <path d="M9.9 4.3A10.4 10.4 0 0 1 12 4c5 0 8.8 4.4 10 8a13.7 13.7 0 0 1-2.2 3.7" />
-          <path d="M6.5 6.5A13.2 13.2 0 0 0 2 12c1.2 3.6 5 8 10 8 1.3 0 2.5-.3 3.6-.8" />
-        </>
-      }
-    >
-      <path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="2.4" />
-    </Show>
-  </svg>
-)
-
-const AccountCard: Component<AccountCardProps> = (props) => {
-  const displayedPassword = (): string =>
-    props.isPasswordVisible ? props.account.password : createPasswordMask(props.account.password)
-
-  return (
-    <div class={styles.cardContent}>
-      <header class={styles.accountHeader}>
-        <div class={styles.accountHeading}>
-          <h2 class={styles.accountName}>{props.account.username}</h2>
-          <span class={styles.universe}>宇宙 {props.account.universe}</span>
-        </div>
-
-        <div class={styles.badges}>
-          <Show when={props.isActive}>
-            <span class={`${styles.badge} ${styles.activeBadge}`}>当前</span>
-          </Show>
-          <span class={styles.badge} data-validity={props.account.validity}>
-            {accountValidityLabels[props.account.validity]}
-          </span>
-        </div>
-      </header>
-
-      <dl class={styles.detailList}>
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>用户名</dt>
-          <dd class={styles.detailValue}>{props.account.username}</dd>
-        </div>
-
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>密码</dt>
-          <dd class={`${styles.detailValue} ${styles.secretValue}`}>
-            <span class={styles.secretText}>{displayedPassword()}</span>
-            <button
-              class={styles.iconButton}
-              type="button"
-              aria-label={props.isPasswordVisible ? '隐藏密码' : '显示密码'}
-              onClick={() => props.onTogglePassword(props.account.id)}
-            >
-              <EyeIcon isOpen={props.isPasswordVisible} />
-            </button>
-          </dd>
-        </div>
-
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>IP</dt>
-          <dd class={styles.detailValue}>{props.account.ip}</dd>
-        </div>
-
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>Token</dt>
-          <dd class={`${styles.detailValue} ${styles.tokenValue}`}>
-            {props.account.token || '未获取'}
-          </dd>
-        </div>
-      </dl>
-
-      <footer class={styles.cardActions}>
-        <ControlButton
-          variant="primary"
-          type="button"
-          disabled={props.isUsePending}
-          onClick={() => props.onUse(props.account.id)}
-        >
-          {props.isUsing ? '使用中' : '使用'}
-        </ControlButton>
-      </footer>
-    </div>
-  )
-}
-
 export const SidePanelView: Component = () => {
   const [accountState, setAccountState] = createStore<AccountState>(defaultAccountState)
-  const [draft, setDraft] = createSignal<AccountDraft>(defaultAccountDraft)
+  const [draft, setDraft] = createSignal<AccountFormDraft>(defaultAccountDraft)
   const [visiblePasswordIds, setVisiblePasswordIds] = createSignal(new Set<string>())
   const [isReady, setIsReady] = createSignal(false)
   const [isAdding, setIsAdding] = createSignal(false)
+  const [isAddingExiting, setIsAddingExiting] = createSignal(false)
+  const [hasAddButtonEntered, setHasAddButtonEntered] = createSignal(false)
   const [isSaving, setIsSaving] = createSignal(false)
   const [isRandomizingIp, setIsRandomizingIp] = createSignal(false)
   const [usingAccountId, setUsingAccountId] = createSignal<string | null>(null)
-  const [feedback, setFeedback] = createSignal('')
+  const [promotedAccountId, setPromotedAccountId] = createSignal<string | null>(null)
+  const [enteredAccountIdsVersion, setEnteredAccountIdsVersion] = createSignal(0)
+  const [pendingDeleteAccountId, setPendingDeleteAccountId] = createSignal<string | null>(null)
+  const [shouldAnimateCards, setShouldAnimateCards] = createSignal(true)
+  const enteredAccountIds = new Set<string>()
+  const initialAccountIds = new Set<string>()
   let randomIpRequestId = 0
 
   const accounts = (): AccountRecord[] => accountState.accounts
+  const promotedAccount = (): AccountRecord | null => {
+    const accountId = promotedAccountId()
+
+    if (!accountId) {
+      return null
+    }
+
+    return accounts().find((account) => account.id === accountId) ?? null
+  }
+  const listedAccounts = (): AccountRecord[] => {
+    const accountId = promotedAccountId()
+
+    return accountId ? accounts().filter((account) => account.id !== accountId) : accounts()
+  }
+  const hasTopCard = (): boolean => isAdding() || isAddingExiting() || promotedAccount() !== null
   const isUsePending = (): boolean => usingAccountId() !== null
+  const markAccountEntered = (accountId: string): void => {
+    if (enteredAccountIds.has(accountId)) {
+      return
+    }
+
+    enteredAccountIds.add(accountId)
+    setEnteredAccountIdsVersion((version) => version + 1)
+  }
+  const accountCardState = (accountId: string): 'entering' | 'visible' | 'exiting' => {
+    enteredAccountIdsVersion()
+
+    if (!shouldAnimateCards()) {
+      return 'visible'
+    }
+
+    if (pendingDeleteAccountId() === accountId) {
+      return 'exiting'
+    }
+
+    return enteredAccountIds.has(accountId) ? 'visible' : 'entering'
+  }
+  const accountCardMotion = (accountId: string): 'float' | 'collapse' => {
+    enteredAccountIdsVersion()
+
+    if (pendingDeleteAccountId() === accountId) {
+      return 'collapse'
+    }
+
+    return initialAccountIds.has(accountId) && !enteredAccountIds.has(accountId)
+      ? 'float'
+      : 'collapse'
+  }
+  const topCardState = (): 'entering' | 'visible' | 'exiting' | undefined => {
+    enteredAccountIdsVersion()
+
+    if (!shouldAnimateCards()) {
+      return 'visible'
+    }
+
+    if (isAddingExiting()) {
+      return 'exiting'
+    }
+
+    const account = promotedAccount()
+
+    if (account) {
+      return accountCardState(account.id)
+    }
+
+    return undefined
+  }
+  const topCardMotion = (): 'float' | 'collapse' => {
+    const account = promotedAccount()
+
+    return account ? accountCardMotion(account.id) : 'collapse'
+  }
   const replaceAccountState = (state: AccountState): void => {
     setAccountState(reconcile(state, { key: 'id' }))
+
+    if (
+      promotedAccountId() &&
+      !state.accounts.some((account) => account.id === promotedAccountId())
+    ) {
+      setPromotedAccountId(null)
+    }
+
+    if (
+      pendingDeleteAccountId() &&
+      !state.accounts.some((account) => account.id === pendingDeleteAccountId())
+    ) {
+      setPendingDeleteAccountId(null)
+    }
   }
 
   const applyMessageResult = (result: AccountMessageResult): void => {
     if (result.type === 'accounts:state') {
       replaceAccountState(result.state)
     }
-
-    if (result.type === 'accounts:random-ip') {
-      setDraft((currentDraft) => ({ ...currentDraft, ip: result.ip }))
-    }
   }
 
-  const updateDraft = (value: Partial<AccountDraft>): void => {
+  const updateDraft = (value: Partial<AccountFormDraft>): void => {
     setDraft((currentDraft) => ({ ...currentDraft, ...value }))
   }
 
+  const completeAddButtonEnter = (event: AnimationEvent): void => {
+    if (event.currentTarget !== event.target) {
+      return
+    }
+
+    setHasAddButtonEntered(true)
+  }
+
   const loadAccounts = async (): Promise<void> => {
-    applyMessageResult(await sendAccountMessage({ type: 'accounts:list' }))
+    const result = await sendAccountMessage({ type: 'accounts:list' })
+
+    if (result.type === 'accounts:state') {
+      initialAccountIds.clear()
+      result.state.accounts.forEach((account) => initialAccountIds.add(account.id))
+    }
+
+    applyMessageResult(result)
+  }
+
+  const getRandomIp = async (): Promise<string | null> => {
+    const result = await sendAccountMessage({ type: 'accounts:random-ip' })
+
+    return result.type === 'accounts:random-ip' ? result.ip : null
   }
 
   const fillRandomIp = async (): Promise<void> => {
     const requestId = ++randomIpRequestId
 
     setIsRandomizingIp(true)
-    setFeedback('')
 
     try {
-      const result = await sendAccountMessage({ type: 'accounts:random-ip' })
+      const ip = await getRandomIp()
 
-      if (requestId === randomIpRequestId) {
-        applyMessageResult(result)
+      if (requestId === randomIpRequestId && ip) {
+        setDraft((currentDraft) => ({ ...currentDraft, ip }))
       }
-    } catch (error) {
-      if (requestId === randomIpRequestId) {
-        setFeedback(error instanceof Error ? error.message : '生成 IP 失败')
-      }
+    } catch {
+      return
     } finally {
       if (requestId === randomIpRequestId) {
         setIsRandomizingIp(false)
@@ -228,52 +214,176 @@ export const SidePanelView: Component = () => {
   }
 
   const startAdding = (): void => {
+    if (isAdding() || isAddingExiting()) {
+      return
+    }
+
     setDraft(defaultAccountDraft)
-    setFeedback('')
+    setPromotedAccountId(null)
+    setIsAddingExiting(false)
     setIsAdding(true)
     void fillRandomIp()
   }
 
   const cancelAdding = (): void => {
+    if (!isAdding() || isAddingExiting()) {
+      return
+    }
+
     randomIpRequestId += 1
-    setDraft(defaultAccountDraft)
-    setFeedback('')
-    setIsAdding(false)
     setIsRandomizingIp(false)
+    if (!shouldAnimateCards()) {
+      setDraft(defaultAccountDraft)
+      setIsAdding(false)
+      return
+    }
+
+    setIsAddingExiting(true)
   }
 
   const submitAccount = (event: SubmitEvent): void => {
     event.preventDefault()
 
-    if (isSaving()) {
+    if (isSaving() || isRandomizingIp()) {
       return
     }
 
     void (async () => {
       setIsSaving(true)
-      setFeedback('')
 
       try {
-        applyMessageResult(
-          await sendAccountMessage({
-            type: 'accounts:create',
-            input: {
-              universe: Number(draft().universe),
-              username: draft().username,
-              password: draft().password,
-              ip: draft().ip,
-            },
-          }),
-        )
+        const previousAccountIds = new Set(accounts().map((account) => account.id))
+        const result = await sendAccountMessage({
+          type: 'accounts:create',
+          input: {
+            universe: Number(draft().universe),
+            username: draft().username,
+            password: draft().password,
+            ip: draft().ip,
+            token: draft().token,
+          },
+        })
+
+        if (result.type === 'accounts:state') {
+          const createdAccount = result.state.accounts.find(
+            (account) => !previousAccountIds.has(account.id),
+          )
+
+          if (createdAccount) {
+            markAccountEntered(createdAccount.id)
+            setPromotedAccountId(createdAccount.id)
+          }
+        }
+
+        applyMessageResult(result)
         setDraft(defaultAccountDraft)
         setIsAdding(false)
-        setFeedback('账号已添加')
-      } catch (error) {
-        setFeedback(error instanceof Error ? error.message : '添加账号失败')
+        setIsAddingExiting(false)
+      } catch {
+        return
       } finally {
         setIsSaving(false)
       }
     })()
+  }
+
+  const updateAccount = async (accountId: string, input: UpdateAccountInput): Promise<void> => {
+    applyMessageResult(
+      await sendAccountMessage({
+        type: 'accounts:update',
+        accountId,
+        input,
+      }),
+    )
+  }
+
+  const deleteAccount = async (accountId: string): Promise<void> => {
+    applyMessageResult(
+      await sendAccountMessage({
+        type: 'accounts:delete',
+        accountId,
+      }),
+    )
+
+    if (promotedAccountId() === accountId) {
+      setPromotedAccountId(null)
+    }
+  }
+
+  const requestDeleteAccount = (accountId: string): void => {
+    if (pendingDeleteAccountId() || isUsePending() || isAddingExiting()) {
+      return
+    }
+
+    if (!shouldAnimateCards()) {
+      void deleteAccount(accountId).catch(() => undefined)
+      return
+    }
+
+    setPendingDeleteAccountId(accountId)
+  }
+
+  const completeDeleteAccount = (accountId: string): void => {
+    if (pendingDeleteAccountId() !== accountId) {
+      return
+    }
+
+    void (async () => {
+      try {
+        await deleteAccount(accountId)
+      } catch {
+        return
+      } finally {
+        if (pendingDeleteAccountId() === accountId) {
+          setPendingDeleteAccountId(null)
+        }
+      }
+    })()
+  }
+
+  const handleAccountCardEnterEnd = (accountId: string): void => {
+    if (!shouldAnimateCards()) {
+      return
+    }
+
+    markAccountEntered(accountId)
+  }
+
+  const handleAccountCardExitEnd = (accountId: string): void => {
+    if (pendingDeleteAccountId() === accountId) {
+      completeDeleteAccount(accountId)
+    }
+  }
+
+  const handleTopCardEnterEnd = (): void => {
+    const account = promotedAccount()
+
+    if (!account || !shouldAnimateCards()) {
+      return
+    }
+
+    markAccountEntered(account.id)
+  }
+
+  const finishCancelAdding = (): void => {
+    randomIpRequestId += 1
+    setDraft(defaultAccountDraft)
+    setIsAdding(false)
+    setIsAddingExiting(false)
+    setIsRandomizingIp(false)
+  }
+
+  const handleTopCardExitEnd = (): void => {
+    if (isAddingExiting()) {
+      finishCancelAdding()
+      return
+    }
+
+    const account = promotedAccount()
+
+    if (account && pendingDeleteAccountId() === account.id) {
+      completeDeleteAccount(account.id)
+    }
   }
 
   const togglePassword = (accountId: string): void => {
@@ -297,20 +407,11 @@ export const SidePanelView: Component = () => {
 
     void (async () => {
       setUsingAccountId(accountId)
-      setFeedback('')
 
       try {
-        const result = await sendAccountMessage({ type: 'accounts:use', accountId })
-        applyMessageResult(result)
-
-        const account =
-          result.type === 'accounts:state'
-            ? result.state.accounts.find((item) => item.id === accountId)
-            : null
-
-        setFeedback(account?.validity === 'valid' ? '账号已启用' : '账号无效')
-      } catch (error) {
-        setFeedback(error instanceof Error ? error.message : '启用账号失败')
+        applyMessageResult(await sendAccountMessage({ type: 'accounts:use', accountId }))
+      } catch {
+        return
       } finally {
         setUsingAccountId(null)
       }
@@ -318,11 +419,17 @@ export const SidePanelView: Component = () => {
   }
 
   onMount(() => {
+    setShouldAnimateCards(
+      typeof window === 'undefined'
+        ? true
+        : !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    )
+
     void (async () => {
       try {
         await loadAccounts()
-      } catch (error) {
-        setFeedback(error instanceof Error ? error.message : '账号加载失败')
+      } catch {
+        return
       } finally {
         setIsReady(true)
       }
@@ -354,112 +461,86 @@ export const SidePanelView: Component = () => {
       <section class={styles.content}>
         <header class={styles.toolbar}>
           <ControlButton
+            class={styles.addAccountButton}
             variant="primary"
             type="button"
-            disabled={!isReady() || isAdding()}
+            data-entered={hasAddButtonEntered() ? 'true' : 'false'}
+            disabled={!isReady() || isAdding() || pendingDeleteAccountId() !== null}
+            onAnimationEnd={completeAddButtonEnter}
+            onAnimationCancel={completeAddButtonEnter}
             onClick={startAdding}
           >
             添加账号
           </ControlButton>
-          <div class={styles.feedback} aria-live="polite">
-            {feedback()}
-          </div>
         </header>
 
         <CardFrameList class={styles.cardList}>
-          <Show when={isAdding()}>
-            <CardFrameListItem enterIndex={0}>
-              <form class={styles.cardContent} aria-busy={isSaving()} onSubmit={submitAccount}>
-                <h2 class={styles.formTitle}>新账号</h2>
-
-                <div class={styles.formFields}>
-                  <label class={styles.field}>
-                    <span class={styles.fieldLabel}>宇宙</span>
-                    <ControlInput
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={draft().universe}
-                      disabled={isSaving()}
-                      onInput={(event) => updateDraft({ universe: event.currentTarget.value })}
-                    />
-                  </label>
-
-                  <label class={styles.field}>
-                    <span class={styles.fieldLabel}>用户名</span>
-                    <ControlInput
-                      type="text"
-                      autocomplete="username"
-                      value={draft().username}
-                      disabled={isSaving()}
-                      onInput={(event) => updateDraft({ username: event.currentTarget.value })}
-                    />
-                  </label>
-
-                  <label class={styles.field}>
-                    <span class={styles.fieldLabel}>密码</span>
-                    <ControlInput
-                      type="password"
-                      autocomplete="current-password"
-                      value={draft().password}
-                      disabled={isSaving()}
-                      onInput={(event) => updateDraft({ password: event.currentTarget.value })}
-                    />
-                  </label>
-
-                  <label class={styles.field}>
-                    <span class={styles.fieldLabel}>IP</span>
-                    <span class={styles.ipControl}>
-                      <ControlInput
-                        type="text"
-                        inputmode="numeric"
-                        value={draft().ip}
-                        disabled={isSaving()}
-                        onInput={(event) => updateDraft({ ip: event.currentTarget.value })}
+          <Show when={hasTopCard()}>
+            <CardFrameListItem
+              enterIndex={1}
+              motion={topCardMotion()}
+              state={topCardState()}
+              onEnterEnd={handleTopCardEnterEnd}
+              onExitEnd={handleTopCardExitEnd}
+            >
+              <Show
+                when={isAdding()}
+                fallback={
+                  <Show when={promotedAccount()}>
+                    {(account) => (
+                      <AccountCard
+                        account={account()}
+                        isActive={accountState.activeAccountId === account().id}
+                        isDeletePending={pendingDeleteAccountId() === account().id}
+                        isPasswordVisible={visiblePasswordIds().has(account().id)}
+                        isUsePending={isUsePending()}
+                        isUsing={usingAccountId() === account().id}
+                        onDeleteStart={requestDeleteAccount}
+                        onRandomIp={getRandomIp}
+                        onTogglePassword={togglePassword}
+                        onUpdate={updateAccount}
+                        onUse={useAccount}
                       />
-                      <ControlButton
-                        type="button"
-                        disabled={isSaving() || isRandomizingIp()}
-                        onClick={() => void fillRandomIp()}
-                      >
-                        随机
-                      </ControlButton>
-                    </span>
-                  </label>
-                </div>
-
-                <footer class={styles.formActions}>
-                  <ControlButton variant="primary" type="submit" disabled={isSaving()}>
-                    {isSaving() ? '添加中' : '添加'}
-                  </ControlButton>
-                  <ControlButton type="button" disabled={isSaving()} onClick={cancelAdding}>
-                    取消
-                  </ControlButton>
-                </footer>
-              </form>
+                    )}
+                  </Show>
+                }
+              >
+                <AccountCard
+                  mode="create"
+                  draft={draft()}
+                  isExiting={isAddingExiting()}
+                  isRandomizingIp={isRandomizingIp()}
+                  isSaving={isSaving()}
+                  onCancel={cancelAdding}
+                  onChange={updateDraft}
+                  onRandomIp={getRandomIp}
+                  onSubmit={submitAccount}
+                />
+              </Show>
             </CardFrameListItem>
           </Show>
 
-          <Show
-            when={accounts().length > 0}
-            fallback={
-              <Show when={!isAdding()}>
-                <CardFrameListItem>
-                  <p class={styles.empty}>暂无账号</p>
-                </CardFrameListItem>
-              </Show>
-            }
-          >
-            <For each={accounts()}>
+          <Show when={listedAccounts().length > 0}>
+            <For each={listedAccounts()}>
               {(account, index) => (
-                <CardFrameListItem enterIndex={index() + (isAdding() ? 1 : 0)}>
+                <CardFrameListItem
+                  enterIndex={index() + (hasTopCard() ? 2 : 1)}
+                  motion={accountCardMotion(account.id)}
+                  state={accountCardState(account.id)}
+                  onEnterEnd={() => handleAccountCardEnterEnd(account.id)}
+                  onExitEnd={() => handleAccountCardExitEnd(account.id)}
+                >
                   <AccountCard
                     account={account}
                     isActive={accountState.activeAccountId === account.id}
+                    isDeletePending={pendingDeleteAccountId() === account.id}
                     isPasswordVisible={visiblePasswordIds().has(account.id)}
                     isUsePending={isUsePending()}
                     isUsing={usingAccountId() === account.id}
+                    onDeleteStart={requestDeleteAccount}
+                    onRandomIp={getRandomIp}
                     onTogglePassword={togglePassword}
+                    onUpdate={updateAccount}
                     onUse={useAccount}
                   />
                 </CardFrameListItem>

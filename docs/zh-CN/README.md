@@ -65,14 +65,14 @@ yarn build
 pnpm build
 ```
 
-构建产物会输出到 `out/<version>`，并同时打包为 `out/bifrost-<version>.zip`。
+开发产物会输出到 `out/dev`。生产构建产物会输出到 `out/build`，并同时打包为 `out/bifrost-<version>.zip`。
 
 ### 加载扩展
 
 1. 打开 `chrome://extensions`
 2. 开启 `开发者模式`
 3. 点击 `加载已解压的扩展程序`
-4. 选择生成后的 `out/<version>` 目录
+4. 开发时选择 `out/dev`，生产检查时选择 `out/build`
 
 ## 🛠️ 开发指南
 

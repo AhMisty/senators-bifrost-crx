@@ -8,20 +8,22 @@ import pkg from './package.json'
 
 const packageName = pkg.name.split('/').at(-1) ?? 'extension'
 const extensionSlug = packageName.replace(/^senators-/, '').replace(/-crx$/, '') || packageName
+const productionOutDir = 'out/build'
+const developmentOutDir = 'out/dev'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     unocss(),
     solid(),
     crx({ manifest }),
     zip({
-      inDir: `out/${pkg.version}`,
+      inDir: productionOutDir,
       outDir: 'out',
       outFileName: `${extensionSlug}-${pkg.version}.zip`,
     }),
   ],
   build: {
-    outDir: `out/${pkg.version}`,
+    outDir: command === 'serve' ? developmentOutDir : productionOutDir,
     target: 'esnext',
     rolldownOptions: {
       output: {
@@ -47,4 +49,4 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-})
+}))

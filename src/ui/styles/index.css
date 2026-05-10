@@ -38,6 +38,7 @@
   --app-accent-active-color: hsl(var(--app-accent-active-hsl));
   --app-selection-text-color: hsl(var(--app-background-hsl));
   --app-selection-background-color: hsl(var(--app-primary-hsl) / 0.88);
+  --app-scrollbar-track-color: transparent;
   --app-scrollbar-thumb-color: hsl(var(--app-primary-line-hsl) / 0.8);
   --app-background-radial-image: radial-gradient(
     50% 50% at 50% 50%,
@@ -53,8 +54,6 @@
   --app-font-family-body: var(--app-font-family);
   --app-font-family-cta: var(--app-font-family);
   --app-font-family-code: 'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
-  scrollbar-width: thin;
-  scrollbar-color: var(--app-scrollbar-thumb-color) transparent;
 }
 
 *,
@@ -102,4 +101,9 @@ img {
 ::selection {
   color: var(--app-selection-text-color);
   background: var(--app-selection-background-color);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-scrollbar-thumb-color) var(--app-scrollbar-track-color);
 }

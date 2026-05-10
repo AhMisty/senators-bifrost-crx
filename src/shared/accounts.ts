@@ -17,12 +17,23 @@ export type AccountState = {
   activeAccountId: string | null
 }
 
+export type AccountFormDraft = {
+  universe: string
+  username: string
+  password: string
+  ip: string
+  token: string
+}
+
 export type CreateAccountInput = {
   universe: number
   username: string
   password: string
   ip: string
+  token: string
 }
+
+export type UpdateAccountInput = CreateAccountInput
 
 export const accountStorageAreaName = 'local'
 export const accountStorageKey = 'accounts'
@@ -95,6 +106,11 @@ export const sanitizeCreateAccountInput = (input: CreateAccountInput): CreateAcc
   username: input.username.trim(),
   password: input.password,
   ip: input.ip.trim(),
+  token: input.token.trim(),
+})
+
+export const sanitizeUpdateAccountInput = (input: UpdateAccountInput): UpdateAccountInput => ({
+  ...sanitizeCreateAccountInput(input),
 })
 
 export const normalizeAccountState = (value: unknown): AccountState => {

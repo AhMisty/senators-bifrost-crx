@@ -65,14 +65,14 @@ yarn build
 pnpm build
 ```
 
-The build output is generated in `out/<version>` and packed as `out/bifrost-<version>.zip`.
+The development output is generated in `out/dev`. The production output is generated in `out/build` and packed as `out/bifrost-<version>.zip`.
 
 ### Load Extension
 
 1. Open `chrome://extensions`
 2. Enable `Developer mode`
 3. Click `Load unpacked`
-4. Select the generated `out/<version>` directory
+4. Select `out/dev` for development, or `out/build` for production checks
 
 ## 🛠️ Development Guide
 

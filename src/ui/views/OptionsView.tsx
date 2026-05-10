@@ -1,9 +1,14 @@
 import styles from './OptionsView.module.css'
 
-import { Show, createSignal, onMount, type Component } from 'solid-js'
+import { Show, createEffect, createSignal, onMount, type Component } from 'solid-js'
 
-import { CardFrameList, CardFrameListItem } from '@/ui/components/CardFrameList'
-import { ControlButton, ControlInput, ControlSwitch } from '@/ui/components/FormControls'
+import {
+  CardFrameList,
+  CardFrameListItem,
+  CardFrameListMotionItem,
+  type CardFrameListItemControlledState,
+} from '@/ui/components/CardFrameList'
+import { ControlButton, ControlInput } from '@/ui/components/FormControls'
 import {
   defaultConnectionOptions,
   loadConnectionOptions,
@@ -18,7 +23,9 @@ export const OptionsView: Component = () => {
   const [isReady, setIsReady] = createSignal(false)
   const [isEditing, setIsEditing] = createSignal(false)
   const [isSaving, setIsSaving] = createSignal(false)
-  const [feedback, setFeedback] = createSignal('')
+  const [isOriginFieldMounted, setIsOriginFieldMounted] = createSignal(
+    draftOptions().isGameAddressProxyAddress,
+  )
 
   onMount(() => {
     void (async () => {
@@ -27,10 +34,10 @@ export const OptionsView: Component = () => {
         setSavedOptions(options)
         setDraftOptions(options)
       } catch {
-        setFeedback('配置加载失败，请重新保存')
+        return
+      } finally {
+        setIsReady(true)
       }
-
-      setIsReady(true)
     })()
   })
 
@@ -38,15 +45,37 @@ export const OptionsView: Component = () => {
     setDraftOptions((currentOptions) => ({ ...currentOptions, ...options }))
   }
 
+  const isBlank = (value: string): boolean => value.trim().length === 0
+  const isGameAddressInvalid = (): boolean => isBlank(draftOptions().gameAddress)
+  const isOriginAddressInvalid = (): boolean =>
+    draftOptions().isGameAddressProxyAddress && isBlank(draftOptions().originAddress)
+  const getGameAddressTone = (): 'warning' | undefined =>
+    isGameAddressInvalid() ? 'warning' : undefined
+  const getOriginAddressTone = (): 'warning' | undefined =>
+    isOriginAddressInvalid() ? 'warning' : undefined
+
+  createEffect(() => {
+    if (draftOptions().isGameAddressProxyAddress) {
+      setIsOriginFieldMounted(true)
+    }
+  })
+
+  const originFieldState = (): CardFrameListItemControlledState =>
+    draftOptions().isGameAddressProxyAddress ? 'entering' : 'exiting'
+
+  const finishOriginFieldExit = (): void => {
+    if (!draftOptions().isGameAddressProxyAddress) {
+      setIsOriginFieldMounted(false)
+    }
+  }
+
   const startEditing = (): void => {
     setDraftOptions(savedOptions())
-    setFeedback('')
     setIsEditing(true)
   }
 
   const cancelEditing = (): void => {
     setDraftOptions(savedOptions())
-    setFeedback('')
     setIsEditing(false)
   }
 
@@ -58,19 +87,26 @@ export const OptionsView: Component = () => {
     }
 
     void (async () => {
-      const nextOptions = sanitizeConnectionOptions(draftOptions())
+      const currentOptions = draftOptions()
+
+      if (
+        isBlank(currentOptions.gameAddress) ||
+        (currentOptions.isGameAddressProxyAddress && isBlank(currentOptions.originAddress))
+      ) {
+        return
+      }
 
       setIsSaving(true)
-      setFeedback('')
 
       try {
+        const nextOptions = sanitizeConnectionOptions(currentOptions)
+
         await saveConnectionOptions(nextOptions)
         setSavedOptions(nextOptions)
         setDraftOptions(nextOptions)
         setIsEditing(false)
-        setFeedback('已保存')
       } catch {
-        setFeedback('保存失败，请重试')
+        return
       } finally {
         setIsSaving(false)
       }
@@ -102,51 +138,69 @@ export const OptionsView: Component = () => {
                     autocomplete="url"
                     placeholder="https://"
                     value={draftOptions().gameAddress}
+                    tone={getGameAddressTone()}
+                    aria-invalid={isGameAddressInvalid() ? 'true' : 'false'}
                     disabled={!isEditing() || isSaving()}
                     onInput={(event) => updateDraft({ gameAddress: event.currentTarget.value })}
                   />
                 </label>
 
-                <div
+                <label
                   class={styles.field}
-                  data-control="switch"
+                  data-control="checkbox"
                   data-disabled={!isEditing() || isSaving() ? 'true' : 'false'}
                 >
                   <span class={styles.fieldLabel}>是否为代理地址</span>
-                  <ControlSwitch
-                    aria-label="是否为代理地址"
+                  <input
+                    class={styles.checkbox}
+                    type="checkbox"
                     checked={draftOptions().isGameAddressProxyAddress}
                     disabled={!isEditing() || isSaving()}
-                    onChange={(checked) => updateDraft({ isGameAddressProxyAddress: checked })}
+                    onChange={(event) =>
+                      updateDraft({ isGameAddressProxyAddress: event.currentTarget.checked })
+                    }
                   />
-                </div>
+                </label>
 
-                <Show when={draftOptions().isGameAddressProxyAddress}>
-                  <label
-                    class={`${styles.field} ${styles.originField}`}
-                    data-control="input"
-                    data-disabled={!isEditing() || isSaving() ? 'true' : 'false'}
+                <Show when={isOriginFieldMounted()}>
+                  <CardFrameListMotionItem
+                    class={styles.originFieldSlot}
+                    motion="collapse"
+                    state={originFieldState()}
+                    onExitEnd={finishOriginFieldExit}
                   >
-                    <span class={styles.fieldLabel}>源地址</span>
-                    <ControlInput
-                      type="url"
-                      inputmode="url"
-                      autocomplete="url"
-                      placeholder="https://"
-                      value={draftOptions().originAddress}
-                      disabled={!isEditing() || isSaving()}
-                      onInput={(event) => updateDraft({ originAddress: event.currentTarget.value })}
-                    />
-                  </label>
+                    <label
+                      class={styles.field}
+                      data-control="input"
+                      data-disabled={
+                        !isEditing() || isSaving() || !draftOptions().isGameAddressProxyAddress
+                          ? 'true'
+                          : 'false'
+                      }
+                    >
+                      <span class={styles.fieldLabel}>源地址</span>
+                      <ControlInput
+                        type="url"
+                        inputmode="url"
+                        autocomplete="url"
+                        placeholder="https://"
+                        value={draftOptions().originAddress}
+                        tone={getOriginAddressTone()}
+                        aria-invalid={isOriginAddressInvalid() ? 'true' : 'false'}
+                        disabled={
+                          !isEditing() || isSaving() || !draftOptions().isGameAddressProxyAddress
+                        }
+                        onInput={(event) =>
+                          updateDraft({ originAddress: event.currentTarget.value })
+                        }
+                      />
+                    </label>
+                  </CardFrameListMotionItem>
                 </Show>
               </div>
 
               <div class={styles.formFooter}>
                 <div class={styles.actions}>
-                  <div class={styles.feedback} aria-live="polite">
-                    {feedback()}
-                  </div>
-
                   <Show
                     when={isEditing()}
                     fallback={

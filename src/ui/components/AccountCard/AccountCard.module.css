@@ -1,0 +1,218 @@
+.cardContent {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.125rem;
+  padding: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+}
+
+.accountHeader {
+  display: flex;
+  min-width: 0;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.accountHeading {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.accountName {
+  overflow: hidden;
+  margin: 0;
+  color: var(--app-primary-main-color);
+  font-family: var(--app-font-family-header);
+  font-size: 1.125rem;
+  font-weight: 300;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid hsl(var(--app-primary-line-hsl) / 0.78);
+  background: hsl(var(--app-primary-surface-hsl) / 0.66);
+  color: hsl(var(--app-primary-muted-hsl) / 0.86);
+  font-family: var(--app-font-family-body);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.3125rem 0.5rem;
+  white-space: nowrap;
+}
+
+.badge[data-validity='valid'],
+.activeBadge {
+  border-color: hsl(var(--app-primary-hsl) / 0.82);
+  color: hsl(var(--app-primary-input-text-high-hsl) / 0.96);
+}
+
+.badge[data-validity='invalid'] {
+  border-color: hsl(var(--app-accent-hsl) / 0.72);
+  color: hsl(var(--app-accent-text-hsl) / 0.92);
+}
+
+.detailList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.detail {
+  display: grid;
+  height: 2.75rem;
+  min-width: 0;
+  grid-template-columns: minmax(max-content, clamp(3.5rem, 12vw, 5.5rem)) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.5rem, 1.6vw, 0.875rem);
+}
+
+.detailLabel {
+  color: hsl(var(--app-primary-muted-hsl) / 0.82);
+  cursor: inherit;
+  font-family: var(--app-font-family-body);
+  font-size: 0.875rem;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.detailValue {
+  display: flex;
+  height: 2.75rem;
+  min-width: 0;
+  align-items: center;
+  margin: 0;
+  color: hsl(var(--app-primary-input-text-hsl) / 0.94);
+  font-family: var(--app-font-family-body);
+  font-size: 0.9375rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.secretValue {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ipEditor {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detailText {
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailInput {
+  height: 2.75rem;
+}
+
+.secretText,
+.tokenValue {
+  font-family: var(--app-font-family-code);
+}
+
+.secretText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tokenValue {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--app-primary-muted-hsl) / 0.8);
+}
+
+.tokenInput {
+  font-family: var(--app-font-family-code);
+}
+
+.iconButton {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--app-primary-line-hsl) / 0.72);
+  border-radius: 0;
+  background: hsl(var(--app-primary-surface-hsl) / 0.58);
+  color: hsl(var(--app-primary-muted-hsl) / 0.82);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.iconButton:hover:not(:disabled),
+.iconButton:focus-visible:not(:disabled) {
+  border-color: hsl(var(--app-primary-hsl) / 0.86);
+  box-shadow: 0 0 0.875rem hsl(var(--app-primary-hsl) / 0.14);
+  color: hsl(var(--app-primary-input-text-high-hsl) / 0.96);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cardActions > :global(button) {
+  min-width: 4.5rem;
+}

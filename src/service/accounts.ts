@@ -6,10 +6,12 @@ import {
   isValidIPv4,
   loadAccountState,
   sanitizeCreateAccountInput,
+  sanitizeUpdateAccountInput,
   saveAccountState,
   type AccountRecord,
   type AccountState,
   type CreateAccountInput,
+  type UpdateAccountInput,
 } from '@/shared/accounts'
 import {
   isAccountMessage,
@@ -62,6 +64,34 @@ const getSharedCourier = (gameUrl: URL): ChromeCourier => {
   return sharedCourier
 }
 
+const forceAccountToken = async (accountId: string, token: string, gameUrl: URL): Promise<void> => {
+  if (!token) {
+    return
+  }
+
+  const state = await loadAccountState()
+  const account = state.accounts.find((item) => item.id === accountId)
+
+  if (!account) {
+    return
+  }
+
+  const now = Date.now()
+  const nextAccount = {
+    ...account,
+    token,
+    validity: 'valid' as const,
+    updatedAt: now,
+  }
+  const nextState = replaceAccount(state, accountId, () => nextAccount)
+
+  if (state.activeAccountId === accountId) {
+    await applyActiveAccountSideEffects(gameUrl, nextAccount)
+  }
+
+  await saveAccountState(nextState)
+}
+
 const createOperator = (account: AccountRecord, gameUrl: URL): Operator => {
   const operator = new Operator({
     universe: account.universe,
@@ -73,6 +103,9 @@ const createOperator = (account: AccountRecord, gameUrl: URL): Operator => {
 
   operator.ip = account.ip
   operator.token = account.token
+  operator.onLogined = async (event) => {
+    await forceAccountToken(account.id, event.operator.token, gameUrl)
+  }
 
   return operator
 }
@@ -92,27 +125,30 @@ const waitForAccountTasks = async (): Promise<void> => {
   await pendingAccountTask.catch(() => undefined)
 }
 
-const createAccount = async (input: CreateAccountInput): Promise<AccountState> => {
-  const accountInput = sanitizeCreateAccountInput(input)
-
-  if (!accountInput.username) {
+const assertValidAccountInput = (input: CreateAccountInput | UpdateAccountInput): void => {
+  if (!input.username) {
     throw new Error('请输入用户名')
   }
 
-  if (!accountInput.password) {
+  if (!input.password) {
     throw new Error('请输入密码')
   }
 
-  if (!isValidIPv4(accountInput.ip)) {
+  if (!isValidIPv4(input.ip)) {
     throw new Error('请输入有效的 IP')
   }
+}
+
+const createAccount = async (input: CreateAccountInput): Promise<AccountState> => {
+  const accountInput = sanitizeCreateAccountInput(input)
+
+  assertValidAccountInput(accountInput)
 
   const state = await loadAccountState()
   const now = Date.now()
   const account: AccountRecord = {
     ...accountInput,
     id: createAccountId(),
-    token: '',
     validity: 'unknown',
     createdAt: now,
     updatedAt: now,
@@ -223,6 +259,79 @@ const applyActiveAccountSideEffects = async (
   await removeGameTokenCookie(gameUrl)
 }
 
+const updateAccount = async (
+  accountId: string,
+  input: UpdateAccountInput,
+): Promise<AccountState> => {
+  const accountInput = sanitizeUpdateAccountInput(input)
+
+  assertValidAccountInput(accountInput)
+
+  const state = await loadAccountState()
+  const account = state.accounts.find((item) => item.id === accountId)
+
+  if (!account) {
+    throw new Error('账号不存在')
+  }
+
+  const isIdentityChanged =
+    account.universe !== accountInput.universe ||
+    account.username !== accountInput.username ||
+    account.password !== accountInput.password ||
+    account.ip !== accountInput.ip ||
+    account.token !== accountInput.token
+  const nextAccount: AccountRecord = {
+    ...account,
+    ...accountInput,
+    validity: isIdentityChanged ? 'unknown' : account.validity,
+    updatedAt: Date.now(),
+  }
+  const nextState = replaceAccount(state, accountId, () => nextAccount)
+
+  if (state.activeAccountId === accountId) {
+    const gameUrl = await getConfiguredGameUrl()
+
+    if (gameUrl) {
+      await applyActiveAccountSideEffects(gameUrl, nextAccount)
+    } else {
+      await removeActiveAccountRequestHeaderRule()
+    }
+  }
+
+  await saveAccountState(nextState)
+
+  return nextState
+}
+
+const deleteAccount = async (accountId: string): Promise<AccountState> => {
+  const state = await loadAccountState()
+  const account = state.accounts.find((item) => item.id === accountId)
+
+  if (!account) {
+    throw new Error('账号不存在')
+  }
+
+  const nextState: AccountState = {
+    ...state,
+    accounts: state.accounts.filter((item) => item.id !== accountId),
+    activeAccountId: state.activeAccountId === accountId ? null : state.activeAccountId,
+  }
+
+  if (state.activeAccountId === accountId) {
+    const gameUrl = await getConfiguredGameUrl()
+
+    await removeActiveAccountRequestHeaderRule()
+
+    if (gameUrl) {
+      await removeGameTokenCookie(gameUrl)
+    }
+  }
+
+  await saveAccountState(nextState)
+
+  return nextState
+}
+
 const useAccount = async (accountId: string): Promise<AccountState> => {
   const state = await loadAccountState()
   const account = state.accounts.find((item) => item.id === accountId)
@@ -237,12 +346,18 @@ const useAccount = async (accountId: string): Promise<AccountState> => {
   const operator = createOperator(account, gameUrl)
 
   await updateActiveAccountRequestHeaderRule(gameUrl, account)
-  await removeGameTokenCookie(gameUrl)
+  if (account.token) {
+    await setGameTokenCookie(gameUrl, account.token)
+  } else {
+    await removeGameTokenCookie(gameUrl)
+  }
 
-  const didLogin = await operator.login().catch(() => false)
+  const didAuthenticate = Boolean(
+    await operator.get({ url: '/game.php?page=control' }).catch(() => false),
+  )
   const now = Date.now()
 
-  if (!didLogin || !operator.token) {
+  if (!didAuthenticate || !operator.token) {
     const nextState = {
       ...replaceAccount(state, account.id, (currentAccount) => ({
         ...currentAccount,
@@ -324,6 +439,18 @@ const handleAccountMessage = async (message: AccountMessage): Promise<AccountMes
       return {
         type: 'accounts:state',
         state: await runAccountTask(() => createAccount(message.input)),
+      }
+
+    case 'accounts:update':
+      return {
+        type: 'accounts:state',
+        state: await runAccountTask(() => updateAccount(message.accountId, message.input)),
+      }
+
+    case 'accounts:delete':
+      return {
+        type: 'accounts:state',
+        state: await runAccountTask(() => deleteAccount(message.accountId)),
       }
 
     case 'accounts:use':

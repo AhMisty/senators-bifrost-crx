@@ -1,4 +1,4 @@
-import type { AccountState, CreateAccountInput } from '@/shared/accounts'
+import type { AccountState, CreateAccountInput, UpdateAccountInput } from '@/shared/accounts'
 
 export type AccountMessage =
   | {
@@ -7,6 +7,15 @@ export type AccountMessage =
   | {
       type: 'accounts:create'
       input: CreateAccountInput
+    }
+  | {
+      type: 'accounts:update'
+      accountId: string
+      input: UpdateAccountInput
+    }
+  | {
+      type: 'accounts:delete'
+      accountId: string
     }
   | {
       type: 'accounts:use'
@@ -52,7 +61,14 @@ const isCreateAccountInput = (value: unknown): value is CreateAccountInput =>
   typeof value.universe === 'number' &&
   typeof value.username === 'string' &&
   typeof value.password === 'string' &&
-  typeof value.ip === 'string'
+  typeof value.ip === 'string' &&
+  typeof value.token === 'string'
+
+const isUpdateAccountInput = (value: unknown): value is UpdateAccountInput =>
+  isCreateAccountInput(value)
+
+const isAccountId = (value: unknown): value is string =>
+  typeof value === 'string' && value.length > 0
 
 export const isAccountMessage = (value: unknown): value is AccountMessage => {
   if (!isRecord(value) || typeof value.type !== 'string') {
@@ -67,8 +83,12 @@ export const isAccountMessage = (value: unknown): value is AccountMessage => {
     case 'accounts:create':
       return isCreateAccountInput(value.input)
 
+    case 'accounts:update':
+      return isAccountId(value.accountId) && isUpdateAccountInput(value.input)
+
+    case 'accounts:delete':
     case 'accounts:use':
-      return typeof value.accountId === 'string' && value.accountId.length > 0
+      return isAccountId(value.accountId)
 
     default:
       return false
