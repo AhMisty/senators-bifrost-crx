@@ -12,6 +12,11 @@ type ChromeHeaders = Headers & {
   getSetCookie(): string[]
 }
 
+type ChromeCookieSnapshot = Map<string, string>
+
+const createCookieSnapshotKey = (cookie: chrome.cookies.Cookie): string =>
+  [cookie.name, cookie.domain ?? '', cookie.path ?? ''].join('\u0000')
+
 class ChromeResponseHeaders extends Headers implements ChromeHeaders {
   readonly #location: string | null
   readonly #setCookie: string[]
@@ -135,6 +140,7 @@ export class ChromeCourier extends Courier {
     const abortController = new AbortController()
     const timeoutId = setTimeout(() => abortController.abort(), this.timeout)
     const requestUrl = new URL(url, this.base)
+    const previousCookies = await this.snapshotCookies(requestUrl)
 
     try {
       const response = await fetch(requestUrl, {
@@ -147,7 +153,7 @@ export class ChromeCourier extends Courier {
 
       return new ChromeFetchResponse(
         response,
-        await this.createChromeResponseHeaders(requestUrl, response),
+        await this.createChromeResponseHeaders(requestUrl, response, previousCookies),
       )
     } catch {
       return false
@@ -192,15 +198,60 @@ export class ChromeCourier extends Courier {
     return searchParams.toString()
   }
 
+  private async snapshotCookies(url: URL): Promise<ChromeCookieSnapshot> {
+    const cookies = await chrome.cookies.getAll({ url: url.toString() })
+
+    return new Map(
+      cookies.map((cookie) => [createCookieSnapshotKey(cookie), cookie.value] as const),
+    )
+  }
+
+  private collectSetCookies(
+    previousCookies: ChromeCookieSnapshot,
+    currentCookies: chrome.cookies.Cookie[],
+  ): string[] {
+    return currentCookies.flatMap((cookie) => {
+      const key = createCookieSnapshotKey(cookie)
+      const previousValue = previousCookies.get(key)
+
+      if (previousValue === cookie.value) {
+        return []
+      }
+
+      return [`${cookie.name}=${cookie.value};`]
+    })
+  }
+
+  private isLoginRequest(url: URL): boolean {
+    return url.pathname.endsWith('/index.php') && url.searchParams.get('page') === 'login'
+  }
+
+  private isSuccessfulLoginResponse(requestUrl: URL, response: Response): boolean {
+    if (!this.isLoginRequest(requestUrl) || !response.redirected || !response.url) {
+      return false
+    }
+
+    try {
+      return !new URL(response.url).pathname.endsWith('/index.php')
+    } catch {
+      return false
+    }
+  }
+
   private async createChromeResponseHeaders(
     requestUrl: URL,
     response: Response,
+    previousCookies: ChromeCookieSnapshot,
   ): Promise<ChromeResponseHeaders> {
     const cookieUrl = response.url || requestUrl.toString()
     const cookies = await chrome.cookies.getAll({ url: cookieUrl })
     const location = response.redirected ? response.url : null
-    const setCookie = cookies.map((cookie) => `${cookie.name}=${cookie.value};`)
+    const setCookie = this.collectSetCookies(previousCookies, cookies)
+    const nextSetCookie =
+      setCookie.length > 0 || !this.isSuccessfulLoginResponse(requestUrl, response)
+        ? setCookie
+        : cookies.map((cookie) => `${cookie.name}=${cookie.value};`)
 
-    return new ChromeResponseHeaders(response.headers, location, setCookie)
+    return new ChromeResponseHeaders(response.headers, location, nextSetCookie)
   }
 }

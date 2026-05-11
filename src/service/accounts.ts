@@ -216,7 +216,7 @@ const createActiveAccountRequestHeaderRule = (
       {
         header: 'Forwarded',
         operation: 'set',
-        value: `for=${ip}`,
+        value: ip,
       },
     ],
   },
