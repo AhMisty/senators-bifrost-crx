@@ -8,12 +8,8 @@ import {
   brandTitleGlyphs,
   brandTitleViewBox,
 } from '@/ui/components/BrandLogo/brandLogoData'
-import {
-  introCompleteDelayMs,
-  introExitDelayMs,
-  introExitTransitionDurationMs,
-  introStartDelayMs,
-} from './introOverlayTimings'
+import { introCompleteDelayMs, introExitDelayMs, introStartDelayMs } from './introOverlayTimings'
+import { introExitTransitionDurationMs } from '@/ui/utils/motion'
 
 type IntroOverlayProps = {
   onExitStart: () => void

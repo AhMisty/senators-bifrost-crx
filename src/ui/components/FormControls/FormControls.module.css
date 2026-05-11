@@ -2,10 +2,10 @@
   justify-self: start;
   width: 100%;
   height: 2.75rem;
-  border: 1px solid var(--arwes-frames-line-color);
+  border: 1px solid var(--app-border-color);
   border-radius: 0;
-  background: hsl(var(--app-primary-surface-hsl) / 0.72);
-  color: hsl(var(--app-primary-input-text-hsl) / 0.96);
+  background: var(--app-surface-color);
+  color: var(--app-control-text-color);
   caret-color: hsl(var(--app-primary-hsl) / 0.96);
   cursor: text;
   font-family: var(--app-font-family-body);
@@ -13,12 +13,7 @@
   line-height: 1;
   outline: none;
   padding: 0 0.875rem;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease;
+  transition: var(--app-transition-control);
 }
 
 .input[type='number'] {
@@ -33,35 +28,33 @@
 }
 
 .input::placeholder {
-  color: hsl(var(--app-primary-muted-hsl) / 0.34);
+  color: var(--app-muted-text-faint-color);
 }
 
 .input:disabled {
-  color: hsl(var(--app-primary-muted-hsl) / 0.52);
+  color: var(--app-muted-text-soft-color);
   cursor: not-allowed;
   opacity: 0.72;
 }
 
 .input[data-tone='warning'] {
-  border-color: hsl(var(--app-accent-text-hsl) / 0.82);
+  border-color: var(--app-border-warning-color);
   caret-color: hsl(var(--app-accent-active-hsl) / 0.96);
 }
 
 .input[data-tone='warning']::placeholder {
-  color: hsl(var(--app-accent-text-hsl) / 0.38);
+  color: var(--app-warning-text-muted-color);
 }
 
 .input:not(:disabled):hover {
-  border-color: hsl(var(--app-primary-line-hsl) / 0.96);
+  border-color: var(--app-border-hover-color);
 }
 
 .input:not(:disabled):focus {
-  border-color: hsl(var(--app-primary-hsl) / 0.92);
-  background: hsl(var(--app-primary-surface-focus-hsl) / 0.82);
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--app-primary-hsl) / 0.42),
-    0 0 1.125rem hsl(var(--app-primary-hsl) / 0.18);
-  color: hsl(var(--app-primary-input-text-high-hsl) / 0.98);
+  border-color: var(--app-border-focus-color);
+  background: var(--app-surface-strong-color);
+  box-shadow: var(--app-shadow-focus-primary);
+  color: var(--app-control-text-high-color);
 }
 
 .input[data-tone='warning']:not(:disabled):hover {
@@ -70,11 +63,9 @@
 
 .input[data-tone='warning']:not(:disabled):focus {
   border-color: hsl(var(--app-accent-active-hsl) / 0.96);
-  background: hsl(var(--app-primary-surface-focus-hsl) / 0.82);
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--app-accent-hsl) / 0.42),
-    0 0 1.125rem hsl(var(--app-accent-hsl) / 0.18);
-  color: hsl(var(--app-primary-input-text-high-hsl) / 0.98);
+  background: var(--app-surface-strong-color);
+  box-shadow: var(--app-shadow-focus-accent);
+  color: var(--app-control-text-high-color);
 }
 
 .button {
@@ -83,10 +74,10 @@
   height: 2.375rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--arwes-frames-line-color);
+  border: 1px solid var(--app-border-color);
   border-radius: 0;
-  background: hsl(var(--app-primary-surface-hsl) / 0.72);
-  color: hsl(var(--app-primary-muted-hsl) / 0.9);
+  background: var(--app-surface-color);
+  color: var(--app-muted-text-strong-color);
   cursor: pointer;
   font-family: var(--app-font-family-body);
   font-size: 0.9375rem;
@@ -94,26 +85,19 @@
   padding: 0 1rem;
   user-select: none;
   white-space: nowrap;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease;
+  transition: var(--app-transition-control);
 }
 
 .button:hover:not(:disabled),
 .button:focus-visible {
-  border-color: hsl(var(--app-primary-hsl) / 0.92);
-  box-shadow: 0 0 1rem hsl(var(--app-primary-hsl) / 0.16);
+  border-color: var(--app-border-focus-color);
+  box-shadow: var(--app-shadow-control-hover);
   color: var(--app-text-color);
 }
 
 .button:active:not(:disabled) {
-  background: hsl(var(--app-primary-control-active-hsl) / 0.82);
-  box-shadow:
-    inset 0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12),
-    0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12);
+  background: var(--app-control-active-color);
+  box-shadow: var(--app-shadow-control-active);
 }
 
 .button:disabled {
@@ -122,8 +106,8 @@
 }
 
 .buttonPrimary {
-  background: hsl(var(--app-primary-control-hsl) / 0.78);
-  color: hsl(var(--app-primary-input-text-hsl) / 0.96);
+  background: var(--app-control-color);
+  color: var(--app-control-text-color);
 }
 
 .switch {
@@ -136,7 +120,7 @@
 
 .switchStatus {
   min-width: 1rem;
-  color: hsl(var(--app-primary-muted-hsl) / 0.74);
+  color: var(--app-muted-text-color);
   cursor: default;
   font-family: var(--app-font-family-body);
   font-size: 0.875rem;
@@ -172,14 +156,10 @@
   display: block;
   width: 3.5rem;
   height: 1.625rem;
-  border: 1px solid var(--arwes-frames-line-color);
+  border: 1px solid var(--app-border-color);
   background: hsl(var(--app-primary-surface-hsl) / 0.78);
   cursor: inherit;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
+  transition: var(--app-transition-toggle);
 }
 
 .switchThumb {
@@ -188,21 +168,19 @@
   left: 0.25rem;
   width: 1rem;
   height: 1rem;
-  background: hsl(var(--app-primary-muted-hsl) / 0.62);
+  background: var(--app-muted-text-soft-color);
   cursor: inherit;
-  transition:
-    background 160ms ease,
-    transform 160ms ease;
+  transition: var(--app-transition-toggle);
 }
 
 .switchInput:checked + .switchTrack {
-  border-color: hsl(var(--app-primary-hsl) / 0.92);
-  background: hsl(var(--app-primary-control-hsl) / 0.78);
-  box-shadow: 0 0 1rem hsl(var(--app-primary-hsl) / 0.18);
+  border-color: var(--app-border-focus-color);
+  background: var(--app-control-color);
+  box-shadow: var(--app-shadow-control-hover);
 }
 
 .switchInput:checked + .switchTrack .switchThumb {
-  background: hsl(var(--app-primary-hsl) / 0.96);
+  background: var(--app-control-bright-color);
   transform: translateX(1.875rem);
 }
 
@@ -211,11 +189,18 @@
 }
 
 .switchInput:not(:disabled):hover + .switchTrack {
-  border-color: hsl(var(--app-primary-line-hsl) / 0.96);
+  border-color: var(--app-border-hover-color);
 }
 
 .switchInput:not(:disabled):focus-visible + .switchTrack {
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--app-primary-hsl) / 0.42),
-    0 0 1.125rem hsl(var(--app-primary-hsl) / 0.18);
+  box-shadow: var(--app-shadow-focus-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .button,
+  .switchTrack,
+  .switchThumb {
+    transition: none;
+  }
 }

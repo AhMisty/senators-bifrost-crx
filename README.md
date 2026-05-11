@@ -9,18 +9,20 @@
   <span style="color: #999">English</span> | [中文](https://github.com/AhMisty/senators-bifrost-crx/blob/main/docs/zh-CN/README.md)
 </div>
 
-> 🚀 A browser extension for Bifrost, bringing the core game automation workflow into the Chrome extension runtime.
+> 🚀 A browser extension for Bifrost, bringing account, connection, cookie, and request-rule workflows into the Chrome extension runtime.
 
 ## ✨ Features
 
-- 🛰️ Integrates the `@senators/bifrost` core library into a Chrome extension project
-- 🔒 Adapts requests, cookies, and redirects for the browser extension environment
-- 🚀 Ships with service worker, options page, and side panel entry points
-- 🪐 Uses SolidJS and UnoCSS to build the extension UI
+- 🛰️ Integrates the `@senators/bifrost` core library into a Chrome MV3 extension
+- 🔒 Adapts fetch, cookies, redirects, and request headers for the extension runtime
+- 🚀 Ships with service worker, options page, side panel, and SPA fallback entry points
+- 🧭 Configures game address, proxy-address mode, and origin address from the options page
+- 🪐 Manages Bifrost accounts from the side panel, including add, edit, delete, and use actions
+- 🎲 Generates random IPv4 values for account request identity setup
+- 🍪 Syncs active account Token, cookies, and dynamic DNR rules with Chrome APIs
 - 🏗️ Generates versioned unpacked builds and zipped release artifacts
-- 🛠️ Keeps manifest, build config, and runtime integration separated and maintainable
-- ⚡ Includes development, lint, format, and production packaging scripts
-- 📡 Ready to target the configured `*.lstyxl.com` Bifrost deployment
+- 🛠️ Keeps manifest, build config, service logic, shared state, and UI modules separated
+- ⚡ Includes development, lint, format, type-check-friendly, and production packaging scripts
 
 ## 🚀 Quick Start
 
@@ -73,6 +75,14 @@ The development output is generated in `out/dev`. The production output is gener
 2. Enable `Developer mode`
 3. Click `Load unpacked`
 4. Select `out/dev` for development, or `out/build` for production checks
+
+## 🧭 Usage
+
+1. Open the options page and configure the game address
+2. Enable proxy-address mode only when the configured game address is a proxy, then fill the origin address
+3. Click the extension action icon to open the side panel
+4. Add an account with universe, username, password, IP, and Token
+5. Click `Use` to activate the account and let the extension sync cookies and request rules
 
 ## 🛠️ Development Guide
 

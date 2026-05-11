@@ -8,7 +8,7 @@ import {
   CardFrameListMotionItem,
   type CardFrameListItemControlledState,
 } from '@/ui/components/CardFrameList'
-import { ControlButton, ControlInput } from '@/ui/components/FormControls'
+import { ControlButton, ControlInput, ControlSwitch } from '@/ui/components/FormControls'
 import {
   defaultConnectionOptions,
   loadConnectionOptions,
@@ -16,6 +16,8 @@ import {
   saveConnectionOptions,
   type ConnectionOptions,
 } from '@/shared/connectionOptions'
+
+const isBlank = (value: string): boolean => value.trim().length === 0
 
 export const OptionsView: Component = () => {
   const [savedOptions, setSavedOptions] = createSignal<ConnectionOptions>(defaultConnectionOptions)
@@ -45,7 +47,6 @@ export const OptionsView: Component = () => {
     setDraftOptions((currentOptions) => ({ ...currentOptions, ...options }))
   }
 
-  const isBlank = (value: string): boolean => value.trim().length === 0
   const isGameAddressInvalid = (): boolean => isBlank(draftOptions().gameAddress)
   const isOriginAddressInvalid = (): boolean =>
     draftOptions().isGameAddressProxyAddress && isBlank(draftOptions().originAddress)
@@ -147,18 +148,17 @@ export const OptionsView: Component = () => {
 
                 <label
                   class={styles.field}
-                  data-control="checkbox"
+                  data-control="switch"
                   data-disabled={!isEditing() || isSaving() ? 'true' : 'false'}
                 >
                   <span class={styles.fieldLabel}>是否为代理地址</span>
-                  <input
-                    class={styles.checkbox}
-                    type="checkbox"
+                  <ControlSwitch
+                    class={styles.switch}
                     checked={draftOptions().isGameAddressProxyAddress}
                     disabled={!isEditing() || isSaving()}
-                    onChange={(event) =>
-                      updateDraft({ isGameAddressProxyAddress: event.currentTarget.checked })
-                    }
+                    checkedLabel="是"
+                    uncheckedLabel="否"
+                    onChange={(checked) => updateDraft({ isGameAddressProxyAddress: checked })}
                   />
                 </label>
 

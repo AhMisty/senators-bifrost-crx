@@ -3,14 +3,21 @@ import styles from './AccountCard.module.css'
 import { Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js'
 
 import { ControlButton, ControlInput } from '@/ui/components/FormControls'
+import { CheckIcon, CopyIcon, DiceIcon, EyeIcon } from './AccountCardIcons'
 import {
-  isValidIPv4,
+  accountValidityLabels,
+  createAccountEditDraft,
+  createPasswordMask,
+  defaultEditDraft,
+  isAccountDraftFieldInvalid,
+  requiredAccountFields,
+  type AccountFormField,
+} from './accountCardModel'
+import {
   type AccountFormDraft,
   type AccountRecord,
-  type AccountValidity,
   type UpdateAccountInput,
 } from '@/shared/accounts'
-import { DiceIcon } from './AccountCardIcons'
 
 type AccountCardCreateProps = {
   mode: 'create'
@@ -43,103 +50,7 @@ type AccountCardStoredProps = {
 
 type AccountCardProps = AccountCardCreateProps | AccountCardStoredProps
 
-type AccountFormField = 'username' | 'password' | 'ip'
-
-const defaultEditDraft: AccountFormDraft = {
-  universe: '1',
-  username: '',
-  password: '',
-  ip: '',
-  token: '',
-}
-
-const requiredAccountFields: AccountFormField[] = ['username', 'password', 'ip']
-
-const accountValidityLabels = {
-  unknown: '未知',
-  valid: '有效',
-  invalid: '无效',
-} as const satisfies Record<AccountValidity, string>
-
-const createAccountEditDraft = (account: AccountRecord): AccountFormDraft => ({
-  universe: String(account.universe),
-  username: account.username,
-  password: account.password,
-  ip: account.ip,
-  token: account.token,
-})
-
-const createPasswordMask = (): string => '******'
-
-const isAccountDraftFieldInvalid = (draft: AccountFormDraft, field: AccountFormField): boolean => {
-  switch (field) {
-    case 'username':
-      return draft.username.trim().length === 0
-    case 'password':
-      return draft.password.length === 0
-    case 'ip':
-      return !isValidIPv4(draft.ip)
-  }
-}
-
-const EyeIcon: Component<{ isOpen: boolean }> = (props) => (
-  <svg
-    class={styles.icon}
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.8"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <Show
-      when={props.isOpen}
-      fallback={
-        <>
-          <path d="M3 3l18 18" />
-          <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-          <path d="M9.9 4.3A10.4 10.4 0 0 1 12 4c5 0 8.8 4.4 10 8a13.7 13.7 0 0 1-2.2 3.7" />
-          <path d="M6.5 6.5A13.2 13.2 0 0 0 2 12c1.2 3.6 5 8 10 8 1.3 0 2.5-.3 3.6-.8" />
-        </>
-      }
-    >
-      <path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="2.4" />
-    </Show>
-  </svg>
-)
-
-const CopyIcon: Component = () => (
-  <svg
-    class={styles.icon}
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.8"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <rect x="8" y="8" width="11" height="11" rx="1.5" />
-    <path d="M5 16H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
-  </svg>
-)
-
-const CheckIcon: Component = () => (
-  <svg
-    class={styles.icon}
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.9"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path d="M20 6 9 17l-5-5" />
-  </svg>
-)
+const copyFeedbackDurationMs = 1_200
 
 export const AccountCard: Component<AccountCardProps> = (props) => {
   const [isEditing, setIsEditing] = createSignal(false)
@@ -150,8 +61,7 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
   const [hasValidationAttempted, setHasValidationAttempted] = createSignal(false)
   let copyResetTimeout: ReturnType<typeof setTimeout> | undefined
 
-  const storedAccount = (): AccountRecord | null =>
-    props.mode === 'create' ? null : props.account
+  const storedAccount = (): AccountRecord | null => (props.mode === 'create' ? null : props.account)
   const isFormMode = (): boolean => props.mode === 'create' || isEditing()
   const formDraft = (): AccountFormDraft => (props.mode === 'create' ? props.draft : editDraft())
   const isFormSaving = (): boolean => (props.mode === 'create' ? props.isSaving : isSavingEdit())
@@ -254,7 +164,7 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
         clearTimeout(copyResetTimeout)
       }
 
-      copyResetTimeout = setTimeout(() => setHasCopiedToken(false), 1200)
+      copyResetTimeout = setTimeout(() => setHasCopiedToken(false), copyFeedbackDurationMs)
     })().catch(() => undefined)
   }
 
@@ -350,6 +260,10 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
       return
     }
 
+    if (props.mode === 'create') {
+      return
+    }
+
     props.onToggleExpanded(props.account.id)
   }
 
@@ -396,8 +310,8 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
                   disabled={!storedAccount()?.token || isCardBusy()}
                   onClick={copyToken}
                 >
-                  <Show when={hasCopiedToken()} fallback={<CopyIcon />}>
-                    <CheckIcon />
+                  <Show when={hasCopiedToken()} fallback={<CopyIcon class={styles.icon} />}>
+                    <CheckIcon class={styles.icon} />
                   </Show>
                 </button>
               </>
@@ -556,7 +470,11 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
                         <button
                           class={styles.iconButton}
                           type="button"
-                          aria-label={props.mode !== 'create' && props.isPasswordVisible ? '隐藏密码' : '显示密码'}
+                          aria-label={
+                            props.mode !== 'create' && props.isPasswordVisible
+                              ? '隐藏密码'
+                              : '显示密码'
+                          }
                           disabled={isCardBusy()}
                           onClick={() => {
                             if (props.mode !== 'create') {
@@ -564,7 +482,10 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
                             }
                           }}
                         >
-                          <EyeIcon isOpen={props.mode !== 'create' && props.isPasswordVisible} />
+                          <EyeIcon
+                            class={styles.icon}
+                            isOpen={props.mode !== 'create' && props.isPasswordVisible}
+                          />
                         </button>
                       </Show>
                     </>

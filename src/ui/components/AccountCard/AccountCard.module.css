@@ -22,12 +22,12 @@
 }
 
 .accountHeader[data-clickable='true'] .accountName {
-  transition: color 160ms ease;
+  transition: color var(--app-motion-duration-control) var(--app-motion-ease-standard);
 }
 
 .accountHeader[data-clickable='true']:hover .accountName,
 .accountHeader[data-clickable='true']:focus-visible .accountName {
-  color: hsl(var(--app-primary-input-text-high-hsl) / 0.96);
+  color: var(--app-control-text-high-color);
 }
 
 .accountHeading {
@@ -57,16 +57,14 @@
   grid-template-rows: 1fr;
   overflow: hidden;
   padding-top: 1.125rem;
-  transition:
-    grid-template-rows 260ms ease-out,
-    padding-top 260ms ease-out;
+  transition: var(--app-transition-collapse-enter);
 }
 
 .accountBody[data-expanded='false'] {
   grid-template-rows: 0fr;
   padding-top: 0;
   pointer-events: none;
-  transition-timing-function: ease-in;
+  transition: var(--app-transition-collapse-exit);
 }
 
 .accountBodyInner {
@@ -93,9 +91,9 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  border: 1px solid hsl(var(--app-primary-line-hsl) / 0.78);
-  background: hsl(var(--app-primary-surface-hsl) / 0.66);
-  color: hsl(var(--app-primary-muted-hsl) / 0.86);
+  border: 1px solid var(--app-border-muted-color);
+  background: var(--app-surface-badge-color);
+  color: var(--app-muted-text-color);
   font-family: var(--app-font-family-body);
   font-size: 0.75rem;
   line-height: 1;
@@ -105,13 +103,13 @@
 
 .badge[data-validity='valid'],
 .activeBadge {
-  border-color: hsl(var(--app-primary-hsl) / 0.82);
-  color: hsl(var(--app-primary-input-text-high-hsl) / 0.96);
+  border-color: var(--app-border-focus-color);
+  color: var(--app-control-text-high-color);
 }
 
 .badge[data-validity='invalid'] {
-  border-color: hsl(var(--app-accent-hsl) / 0.72);
-  color: hsl(var(--app-accent-text-hsl) / 0.92);
+  border-color: var(--app-border-accent-color);
+  color: var(--app-warning-text-color);
 }
 
 .detailList {
@@ -132,7 +130,7 @@
 }
 
 .detailLabel {
-  color: hsl(var(--app-primary-muted-hsl) / 0.82);
+  color: var(--app-muted-text-color);
   cursor: inherit;
   font-family: var(--app-font-family-body);
   font-size: 0.875rem;
@@ -147,7 +145,7 @@
   min-width: 0;
   align-items: center;
   margin: 0;
-  color: hsl(var(--app-primary-input-text-hsl) / 0.94);
+  color: var(--app-control-text-color);
   font-family: var(--app-font-family-body);
   font-size: 0.9375rem;
   line-height: 1;
@@ -199,7 +197,7 @@
   grid-template-columns: minmax(0, 1fr) 2rem;
   align-items: center;
   gap: 0.5rem;
-  color: hsl(var(--app-primary-muted-hsl) / 0.8);
+  color: var(--app-muted-text-color);
 }
 
 .tokenInput {
@@ -213,25 +211,20 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid hsl(var(--app-primary-line-hsl) / 0.72);
+  border: 1px solid var(--app-border-muted-color);
   border-radius: 0;
-  background: hsl(var(--app-primary-surface-hsl) / 0.58);
-  color: hsl(var(--app-primary-muted-hsl) / 0.82);
+  background: var(--app-surface-muted-color);
+  color: var(--app-muted-text-color);
   cursor: pointer;
   padding: 0;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease,
-    opacity 160ms ease;
+  transition: var(--app-transition-control);
 }
 
 .iconButton:hover:not(:disabled),
 .iconButton:focus-visible:not(:disabled) {
-  border-color: hsl(var(--app-primary-hsl) / 0.86);
-  box-shadow: 0 0 0.875rem hsl(var(--app-primary-hsl) / 0.14);
-  color: hsl(var(--app-primary-input-text-high-hsl) / 0.96);
+  border-color: var(--app-border-strong-color);
+  box-shadow: var(--app-shadow-control-hover);
+  color: var(--app-control-text-high-color);
 }
 
 .iconButton:disabled {
@@ -258,7 +251,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .accountBody {
+  .accountHeader[data-clickable='true'] .accountName,
+  .accountBody,
+  .iconButton {
     transition: none;
   }
 }

@@ -23,13 +23,15 @@
 }
 
 .brand[data-active='true'] .markSegment {
-  animation: brand-logo-mark-in 420ms cubic-bezier(0.12, 0.78, 0.24, 1) forwards;
+  animation: brand-logo-mark-in var(--app-motion-duration-logo-mark) var(--app-motion-ease-emphatic)
+    forwards;
   animation-delay: var(--brand-logo-delay);
 }
 
 .brand[data-active='true'] .titleGlyph {
-  animation: brand-logo-title-in 320ms linear forwards;
-  animation-delay: calc(160ms + var(--brand-logo-delay));
+  animation: brand-logo-title-in var(--app-motion-duration-compact) var(--app-motion-ease-linear)
+    forwards;
+  animation-delay: calc(var(--app-motion-duration-control) + var(--brand-logo-delay));
 }
 
 .title {
@@ -79,5 +81,14 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand[data-active='true'] .markSegment,
+  .brand[data-active='true'] .titleGlyph {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }

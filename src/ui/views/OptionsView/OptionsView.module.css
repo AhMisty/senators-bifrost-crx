@@ -1,0 +1,95 @@
+.cardList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.cardContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--app-primary-main-color);
+  font-family: var(--app-font-family-header);
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(max-content, clamp(3.5rem, 12vw, 7rem)) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.625rem, 2vw, 1rem);
+  justify-content: start;
+  min-height: 2.75rem;
+  cursor: default;
+}
+
+.field[data-control='input'] {
+  cursor: text;
+}
+
+.field[data-control='switch'] {
+  cursor: pointer;
+}
+
+.field[data-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.fieldGroup > .field + .field {
+  margin-top: 0.75rem;
+}
+
+.originFieldSlot {
+  --card-frame-list-leading-spacer: 0.75rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  color: var(--app-muted-text-color);
+  cursor: inherit;
+  font-family: var(--app-font-family-body);
+  font-size: 0.875rem;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.switch {
+  justify-self: start;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

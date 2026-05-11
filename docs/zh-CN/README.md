@@ -9,18 +9,20 @@
   [English](https://github.com/AhMisty/senators-bifrost-crx/blob/main/docs/en-US/README.md) | <span style="color: #999">中文</span>
 </div>
 
-> 🚀 一个面向 Bifrost 的浏览器扩展项目，把核心自动化能力接入 Chrome 扩展运行时。
+> 🚀 一个面向 Bifrost 的浏览器扩展项目，把账号、连接、Cookie 与请求规则流程接入 Chrome 扩展运行时。
 
 ## ✨ 功能特性
 
-- 🛰️ 将 `@senators/bifrost` 核心库集成到 Chrome 扩展工程中
-- 🔒 为浏览器扩展环境适配请求、Cookie 与重定向处理
-- 🚀 内置 service worker、options page 和 side panel 等扩展入口
-- 🪐 使用 SolidJS 与 UnoCSS 构建扩展界面
+- 🛰️ 将 `@senators/bifrost` 核心库集成到 Chrome MV3 扩展中
+- 🔒 为扩展运行时适配 fetch、Cookie、重定向与请求头处理
+- 🚀 内置 service worker、options page、side panel 与 SPA fallback 入口
+- 🧭 在配置页管理游戏地址、代理地址模式与源地址
+- 🪐 在侧边栏管理 Bifrost 账号，支持添加、修改、删除与使用
+- 🎲 为账号请求身份配置生成随机 IPv4
+- 🍪 通过 Chrome API 同步当前账号 Token、Cookie 与动态 DNR 规则
 - 🏗️ 自动生成按版本区分的解压产物与 zip 发布包
-- 🛠️ 将 manifest、构建配置与运行时集成解耦，便于维护和扩展
-- ⚡ 内置开发、检查、格式化与生产打包脚本
-- 📡 默认面向已配置的 `*.lstyxl.com` Bifrost 部署环境
+- 🛠️ 将 manifest、构建配置、service 逻辑、共享状态与 UI 模块分层维护
+- ⚡ 内置开发、检查、格式化、类型检查友好与生产打包脚本
 
 ## 🚀 快速开始
 
@@ -73,6 +75,14 @@ pnpm build
 2. 开启 `开发者模式`
 3. 点击 `加载已解压的扩展程序`
 4. 开发时选择 `out/dev`，生产检查时选择 `out/build`
+
+## 🧭 使用方式
+
+1. 打开配置页并填写游戏地址
+2. 仅当游戏地址是代理地址时开启代理地址模式，并填写源地址
+3. 点击扩展图标打开侧边栏
+4. 添加账号，填写宇宙、用户名、密码、IP 与 Token
+5. 点击 `使用` 激活账号，并让扩展同步 Cookie 与请求规则
 
 ## 🛠️ 开发指南
 

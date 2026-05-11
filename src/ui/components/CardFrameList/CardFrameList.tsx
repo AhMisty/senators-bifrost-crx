@@ -10,11 +10,12 @@ import {
 } from 'solid-js'
 
 import { CardFrame } from '@/ui/components/CardFrame'
+import { motionDurationMs } from '@/ui/utils/motion'
 
 export type CardFrameListItemMotion = 'float' | 'collapse'
 export type CardFrameListItemControlledState = 'entering' | 'visible' | 'exiting'
 type CardFrameListItemState = CardFrameListItemControlledState | 'exited'
-const exitAnimationFallbackMs = 320
+const exitAnimationFallbackMs = motionDurationMs.collapse
 
 type CardFrameListProps = {
   children: JSX.Element

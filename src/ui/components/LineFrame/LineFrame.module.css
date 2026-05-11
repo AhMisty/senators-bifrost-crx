@@ -47,15 +47,18 @@
 }
 
 .frame[data-active='true'] [data-name='line'] {
-  animation: line-frame-draw 800ms ease-out forwards;
+  animation: line-frame-draw var(--app-motion-duration-card-enter) var(--app-motion-ease-out)
+    forwards;
 }
 
 .frame[data-active='true'] path[data-name='deco'] {
-  animation: line-frame-deco-in 320ms linear forwards;
+  animation: line-frame-deco-in var(--app-motion-duration-compact) var(--app-motion-ease-linear)
+    forwards;
 }
 
 .frame[data-active='true'] g[data-name='deco'] {
-  animation: line-frame-deco-in 320ms linear 800ms forwards;
+  animation: line-frame-deco-in var(--app-motion-duration-compact) var(--app-motion-ease-linear)
+    var(--app-motion-duration-card-enter) forwards;
 }
 
 @keyframes line-frame-draw {
@@ -78,6 +81,18 @@
   }
 
   100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame [data-name='line'] {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .frame [data-name='deco'] {
+    animation: none;
     opacity: 1;
   }
 }

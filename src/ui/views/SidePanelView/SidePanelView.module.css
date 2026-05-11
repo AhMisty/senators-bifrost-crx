@@ -29,7 +29,8 @@
 }
 
 .addAccountButton[data-entered='false'] {
-  animation: side-panel-card-enter 800ms ease-out both;
+  animation: side-panel-card-enter var(--app-motion-duration-card-enter) var(--app-motion-ease-out)
+    both;
   animation-delay: 0ms;
 }
 

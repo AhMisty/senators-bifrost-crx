@@ -5,8 +5,9 @@ import { createEffect, createSignal, onCleanup, onMount, type Component } from '
 import backgroundImageLargeWebp from '@/ui/assets/background/large.webp'
 import backgroundImageMediumWebp from '@/ui/assets/background/medium.webp'
 import backgroundImageSmallWebp from '@/ui/assets/background/small.webp'
+import { usePrefersReducedMotion } from '@/ui/hooks/usePrefersReducedMotion'
+import { easeOutExpo, introExitTransitionDurationMs, motionDurationMs } from '@/ui/utils/motion'
 import { redirectRoutes } from '@/shared/routes'
-import { introExitTransitionDurationMs } from '@/ui/components/IntroOverlay/introOverlayTimings'
 
 const backgroundDotsSettingsBase = {
   size: 2,
@@ -20,7 +21,6 @@ const backgroundPuffsSettingsBase = {
 
 const backgroundImageInitialOpacity = 0.6
 const backgroundImageInitialScale = 1.05
-const backgroundImageEnterDurationMs = 1000
 const backgroundImageScaleVarName = '--background-image-scale'
 const backgroundBlurTransitionDurationVarName = '--background-blur-transition-duration'
 const backgroundPrimaryBrightHslFallback = '180 100% 70%'
@@ -31,11 +31,12 @@ type BackgroundAnimator = Parameters<typeof createBackgroundDots>[0]['animator']
 type BackgroundProps = {
   isBlurred: boolean
 }
+type BackgroundImageProps = BackgroundProps & {
+  isReducedMotion: boolean
+}
 type BackgroundLayerProps = {
   kind: BackgroundLayerKind
 }
-
-const easeOutExpo = (value: number): number => (value === 1 ? 1 : 1 - 2 ** (-10 * value))
 
 const getThemeHsl = (tokenName: string, fallback: string): string => {
   const tokenValue = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
@@ -64,7 +65,7 @@ const animateBackgroundImageReveal = (
       return
     }
 
-    const progress = Math.min((timestamp - startTime) / backgroundImageEnterDurationMs, 1)
+    const progress = Math.min((timestamp - startTime) / motionDurationMs.backgroundReveal, 1)
     const easedProgress = easeOutExpo(progress)
     const opacity =
       backgroundImageInitialOpacity + (1 - backgroundImageInitialOpacity) * easedProgress
@@ -123,16 +124,31 @@ const createBackgroundLayer = (
         },
       })
 
-const BackgroundImage: Component<BackgroundProps> = (props) => {
+const BackgroundImage: Component<BackgroundImageProps> = (props) => {
   const location = useLocation()
   let pictureElement: HTMLPictureElement | undefined
   let didTrackFilterTransition = false
   let filterTransitionTimerId = 0
   const [isRevealActive, setIsRevealActive] = createSignal(true)
   const [isFilterTransitionActive, setIsFilterTransitionActive] = createSignal(false)
+  const blurTransitionDurationMs = (): number =>
+    props.isReducedMotion ? 0 : introExitTransitionDurationMs
+
+  createEffect(() => {
+    if (props.isReducedMotion && pictureElement) {
+      setBackgroundImageState(pictureElement, 1, 1)
+      setIsRevealActive(false)
+    }
+  })
 
   onMount(() => {
     if (!pictureElement) {
+      return
+    }
+
+    if (props.isReducedMotion) {
+      setBackgroundImageState(pictureElement, 1, 1)
+      setIsRevealActive(false)
       return
     }
 
@@ -183,10 +199,10 @@ const BackgroundImage: Component<BackgroundProps> = (props) => {
       ref={(element) => {
         pictureElement = element
       }}
-      class="absolute inset-0 op-60 [transform:scale(var(--background-image-scale,1.05))] [transform-origin:top_center] [transition-duration:var(--background-blur-transition-duration,220ms)] transition-[filter] ease-out"
+      class="absolute inset-0 op-60 [transform:scale(var(--background-image-scale,1.05))] [transform-origin:top_center] [transition-duration:var(--background-blur-transition-duration,var(--app-motion-duration-panel))] [transition-timing-function:var(--app-motion-ease-out)] transition-[filter]"
       style={{
         [backgroundImageScaleVarName]: `${backgroundImageInitialScale}`,
-        [backgroundBlurTransitionDurationVarName]: `${introExitTransitionDurationMs}ms`,
+        [backgroundBlurTransitionDurationVarName]: `${blurTransitionDurationMs()}ms`,
         filter: getFilter(),
         'will-change': getWillChange(),
       }}
@@ -231,27 +247,33 @@ const BackgroundLayer: Component<BackgroundLayerProps> = (props) => {
   )
 }
 
-export const Background: Component<BackgroundProps> = (props) => (
-  <Animator root combine duration={{ enter: 0.01, exit: 0.01 }}>
-    <div
-      class="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-[var(--app-background-color)]"
-      aria-hidden="true"
-    >
-      <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute inset-0 [background:var(--app-background-radial-image)]" />
+export const Background: Component<BackgroundProps> = (props) => {
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const layerEnterDuration = (): number => (prefersReducedMotion() ? 0.01 : 1)
+  const puffsInterval = (): number => (prefersReducedMotion() ? 0.01 : 4)
 
-        <Animator duration={{ enter: 1 }}>
-          <BackgroundImage isBlurred={props.isBlurred} />
-        </Animator>
+  return (
+    <Animator root combine duration={{ enter: 0.01, exit: 0.01 }}>
+      <div
+        class="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none bg-[var(--app-background-color)]"
+        aria-hidden="true"
+      >
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="absolute inset-0 [background:var(--app-background-radial-image)]" />
 
-        <Animator duration={{ enter: 1 }}>
-          <BackgroundLayer kind="dots" />
-        </Animator>
+          <Animator duration={{ enter: layerEnterDuration() }}>
+            <BackgroundImage isBlurred={props.isBlurred} isReducedMotion={prefersReducedMotion()} />
+          </Animator>
 
-        <Animator duration={{ enter: 1, interval: 4 }}>
-          <BackgroundLayer kind="puffs" />
-        </Animator>
+          <Animator duration={{ enter: layerEnterDuration() }}>
+            <BackgroundLayer kind="dots" />
+          </Animator>
+
+          <Animator duration={{ enter: layerEnterDuration(), interval: puffsInterval() }}>
+            <BackgroundLayer kind="puffs" />
+          </Animator>
+        </div>
       </div>
-    </div>
-  </Animator>
-)
+    </Animator>
+  )
+}

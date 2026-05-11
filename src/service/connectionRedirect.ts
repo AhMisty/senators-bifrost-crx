@@ -6,8 +6,10 @@ import {
   type ConnectionOptions,
 } from '@/shared/connectionOptions'
 import { dnrResourceTypes, escapeDnrRegex, parseHttpUrl } from '@/service/dnrRules'
+import { createTaskQueue } from '@/service/libs/createTaskQueue'
 
 const connectionRedirectRuleId = 1
+const redirectRuleTaskQueue = createTaskQueue()
 
 type ConnectionAddressMap = {
   regexFilter: string
@@ -145,12 +147,9 @@ const updateConnectionRedirectRule = async (options: ConnectionOptions): Promise
   })
 }
 
-let pendingUpdate = Promise.resolve()
-
 const queueConnectionRedirectRuleUpdate = (options?: ConnectionOptions): void => {
-  pendingUpdate = pendingUpdate
-    .catch(() => undefined)
-    .then(async () => updateConnectionRedirectRule(options ?? (await loadConnectionOptions())))
+  void redirectRuleTaskQueue
+    .run(async () => updateConnectionRedirectRule(options ?? (await loadConnectionOptions())))
     .catch(() => undefined)
 }
 

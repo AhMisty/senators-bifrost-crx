@@ -26,13 +26,14 @@ import {
   normalizeConnectionOptions,
   type ConnectionOptions,
 } from '@/shared/connectionOptions'
+import { createTaskQueue } from '@/service/libs/createTaskQueue'
 
 const activeAccountRequestHeaderRuleId = 2
-const sharedConfig = new Config()
+const bifrostConfig = new Config()
 
-let sharedCourier: ChromeCourier | null = null
-let sharedCourierBase = ''
-let pendingAccountTask = Promise.resolve()
+let cachedCourier: ChromeCourier | null = null
+let cachedCourierBase = ''
+const accountTaskQueue = createTaskQueue()
 
 const createAccountId = (): string =>
   crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -53,15 +54,15 @@ const requireGameUrl = async (): Promise<URL> => {
   return gameUrl
 }
 
-const getSharedCourier = (gameUrl: URL): ChromeCourier => {
+const getGameCourier = (gameUrl: URL): ChromeCourier => {
   const base = `${gameUrl.origin}/`
 
-  if (!sharedCourier || sharedCourierBase !== base) {
-    sharedCourier = new ChromeCourier({ base })
-    sharedCourierBase = base
+  if (!cachedCourier || cachedCourierBase !== base) {
+    cachedCourier = new ChromeCourier({ base })
+    cachedCourierBase = base
   }
 
-  return sharedCourier
+  return cachedCourier
 }
 
 const forceAccountToken = async (accountId: string, token: string, gameUrl: URL): Promise<void> => {
@@ -85,11 +86,11 @@ const forceAccountToken = async (accountId: string, token: string, gameUrl: URL)
   }
   const nextState = replaceAccount(state, accountId, () => nextAccount)
 
+  await saveAccountState(nextState)
+
   if (state.activeAccountId === accountId) {
     await applyActiveAccountSideEffects(gameUrl, nextAccount)
   }
-
-  await saveAccountState(nextState)
 }
 
 const createOperator = (account: AccountRecord, gameUrl: URL): Operator => {
@@ -97,8 +98,8 @@ const createOperator = (account: AccountRecord, gameUrl: URL): Operator => {
     universe: account.universe,
     username: account.username,
     password: account.password,
-    courier: getSharedCourier(gameUrl),
-    config: sharedConfig,
+    courier: getGameCourier(gameUrl),
+    config: bifrostConfig,
   })
 
   operator.ip = account.ip
@@ -110,22 +111,11 @@ const createOperator = (account: AccountRecord, gameUrl: URL): Operator => {
   return operator
 }
 
-const runAccountTask = <Result>(action: () => Promise<Result>): Promise<Result> => {
-  const taskResult = pendingAccountTask.catch(() => undefined).then(action)
+const runAccountTask = accountTaskQueue.run
 
-  pendingAccountTask = taskResult.then(
-    () => undefined,
-    () => undefined,
-  )
+const waitForAccountTasks = accountTaskQueue.wait
 
-  return taskResult
-}
-
-const waitForAccountTasks = async (): Promise<void> => {
-  await pendingAccountTask.catch(() => undefined)
-}
-
-const assertValidAccountInput = (input: CreateAccountInput | UpdateAccountInput): void => {
+const assertValidAccountInput = (input: CreateAccountInput): void => {
   if (!input.username) {
     throw new Error('请输入用户名')
   }
@@ -177,7 +167,7 @@ const replaceAccount = (
 const setGameTokenCookie = async (gameUrl: URL, token: string): Promise<void> => {
   const cookie = await chrome.cookies.set({
     url: `${gameUrl.origin}/`,
-    name: sharedConfig.token,
+    name: bifrostConfig.token,
     value: token,
     path: '/',
     secure: gameUrl.protocol === 'https:',
@@ -191,14 +181,14 @@ const setGameTokenCookie = async (gameUrl: URL, token: string): Promise<void> =>
 const removeGameTokenCookie = async (gameUrl: URL): Promise<void> => {
   await chrome.cookies.remove({
     url: `${gameUrl.origin}/`,
-    name: sharedConfig.token,
+    name: bifrostConfig.token,
   })
 }
 
 const getGameTokenCookie = async (gameUrl: URL): Promise<string | null> => {
   const cookie = await chrome.cookies.get({
     url: `${gameUrl.origin}/`,
-    name: sharedConfig.token,
+    name: bifrostConfig.token,
   })
 
   return cookie?.value ?? null
@@ -267,7 +257,7 @@ const syncActiveAccountFromGameCookie = async (gameUrl: URL): Promise<void> => {
   const state = await loadAccountState()
   const cookieToken = await getGameTokenCookie(gameUrl)
   const matchedAccount = cookieToken
-    ? state.accounts.find((account) => account.token === cookieToken) ?? null
+    ? (state.accounts.find((account) => account.token === cookieToken) ?? null)
     : null
   const nextActiveAccountId = matchedAccount?.id ?? null
 
@@ -281,16 +271,16 @@ const syncActiveAccountFromGameCookie = async (gameUrl: URL): Promise<void> => {
     return
   }
 
+  await saveAccountState({
+    ...state,
+    activeAccountId: nextActiveAccountId,
+  })
+
   if (matchedAccount) {
     await updateActiveAccountRequestHeaderRule(gameUrl, matchedAccount)
   } else {
     await removeActiveAccountRequestHeaderRule()
   }
-
-  await saveAccountState({
-    ...state,
-    activeAccountId: nextActiveAccountId,
-  })
 }
 
 const syncActiveAccountFromConfiguredGameCookie = async (): Promise<void> => {
@@ -333,6 +323,8 @@ const updateAccount = async (
   }
   const nextState = replaceAccount(state, accountId, () => nextAccount)
 
+  await saveAccountState(nextState)
+
   if (state.activeAccountId === accountId) {
     const gameUrl = await getConfiguredGameUrl()
 
@@ -342,8 +334,6 @@ const updateAccount = async (
       await removeActiveAccountRequestHeaderRule()
     }
   }
-
-  await saveAccountState(nextState)
 
   return nextState
 }
@@ -362,6 +352,8 @@ const deleteAccount = async (accountId: string): Promise<AccountState> => {
     activeAccountId: state.activeAccountId === accountId ? null : state.activeAccountId,
   }
 
+  await saveAccountState(nextState)
+
   if (state.activeAccountId === accountId) {
     const gameUrl = await getConfiguredGameUrl()
 
@@ -371,8 +363,6 @@ const deleteAccount = async (accountId: string): Promise<AccountState> => {
       await removeGameTokenCookie(gameUrl)
     }
   }
-
-  await saveAccountState(nextState)
 
   return nextState
 }
@@ -410,11 +400,12 @@ const useAccount = async (accountId: string): Promise<AccountState> => {
       activeAccountId: state.activeAccountId === account.id ? null : state.activeAccountId,
     }
 
+    await saveAccountState(nextState)
+
     await applyActiveAccountSideEffects(
       gameUrl,
       nextState.activeAccountId === previousActiveAccount?.id ? previousActiveAccount : null,
     )
-    await saveAccountState(nextState)
 
     return nextState
   }
@@ -430,8 +421,9 @@ const useAccount = async (accountId: string): Promise<AccountState> => {
     activeAccountId: account.id,
   }
 
-  await applyActiveAccountSideEffects(gameUrl, activeAccount)
   await saveAccountState(nextState)
+
+  await applyActiveAccountSideEffects(gameUrl, activeAccount)
 
   return nextState
 }
@@ -560,7 +552,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 })
 
 chrome.cookies.onChanged.addListener(({ cookie }) => {
-  if (cookie.name !== sharedConfig.token) {
+  if (cookie.name !== bifrostConfig.token) {
     return
   }
 

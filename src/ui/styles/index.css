@@ -36,6 +36,80 @@
   --app-accent-text-color: hsl(var(--app-accent-text-hsl));
   --app-accent-hover-color: hsl(var(--app-accent-hover-hsl));
   --app-accent-active-color: hsl(var(--app-accent-active-hsl));
+  --app-surface-color: hsl(var(--app-primary-surface-hsl) / 0.72);
+  --app-surface-muted-color: hsl(var(--app-primary-surface-hsl) / 0.58);
+  --app-surface-strong-color: hsl(var(--app-primary-surface-focus-hsl) / 0.82);
+  --app-surface-badge-color: hsl(var(--app-primary-surface-hsl) / 0.66);
+  --app-control-color: hsl(var(--app-primary-control-hsl) / 0.78);
+  --app-control-active-color: hsl(var(--app-primary-control-active-hsl) / 0.82);
+  --app-control-bright-color: hsl(var(--app-primary-hsl) / 0.96);
+  --app-border-color: var(--arwes-frames-line-color);
+  --app-border-muted-color: hsl(var(--app-primary-line-hsl) / 0.72);
+  --app-border-hover-color: hsl(var(--app-primary-line-hsl) / 0.96);
+  --app-border-focus-color: hsl(var(--app-primary-hsl) / 0.92);
+  --app-border-strong-color: hsl(var(--app-primary-hsl) / 0.86);
+  --app-border-accent-color: hsl(var(--app-accent-hsl) / 0.72);
+  --app-border-warning-color: hsl(var(--app-accent-text-hsl) / 0.82);
+  --app-control-text-color: hsl(var(--app-primary-input-text-hsl) / 0.96);
+  --app-control-text-high-color: hsl(var(--app-primary-input-text-high-hsl) / 0.98);
+  --app-muted-text-color: hsl(var(--app-primary-muted-hsl) / 0.86);
+  --app-muted-text-soft-color: hsl(var(--app-primary-muted-hsl) / 0.62);
+  --app-muted-text-strong-color: hsl(var(--app-primary-muted-hsl) / 0.9);
+  --app-muted-text-faint-color: hsl(var(--app-primary-muted-hsl) / 0.34);
+  --app-warning-text-color: hsl(var(--app-accent-text-hsl) / 0.92);
+  --app-warning-text-muted-color: hsl(var(--app-accent-text-hsl) / 0.38);
+  --app-shadow-control-hover: 0 0 1rem hsl(var(--app-primary-hsl) / 0.16);
+  --app-shadow-control-active:
+    inset 0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12),
+    0 0 0.75rem hsl(var(--app-primary-hsl) / 0.12);
+  --app-shadow-focus-primary:
+    inset 0 0 0 1px hsl(var(--app-primary-hsl) / 0.42),
+    0 0 1.125rem hsl(var(--app-primary-hsl) / 0.18);
+  --app-shadow-focus-accent:
+    inset 0 0 0 1px hsl(var(--app-accent-hsl) / 0.42),
+    0 0 1.125rem hsl(var(--app-accent-hsl) / 0.18);
+  --app-motion-duration-fast: 120ms;
+  --app-motion-duration-control: 160ms;
+  --app-motion-duration-panel: 220ms;
+  --app-motion-duration-collapse: 260ms;
+  --app-motion-duration-compact: 320ms;
+  --app-motion-duration-logo-mark: 420ms;
+  --app-motion-duration-core-fade: 520ms;
+  --app-motion-duration-intro: 540ms;
+  --app-motion-duration-intro-arm: 560ms;
+  --app-motion-duration-card-enter: 800ms;
+  --app-motion-duration-background-reveal: 1000ms;
+  --app-motion-duration-pulse: 2.4s;
+  --app-motion-duration-halo: 4.8s;
+  --app-motion-duration-orbit: 18s;
+  --app-motion-duration-orbit-inner: 14s;
+  --app-motion-delay-intro-center: 80ms;
+  --app-motion-delay-intro-core: 620ms;
+  --app-motion-ease-standard: ease;
+  --app-motion-ease-in: ease-in;
+  --app-motion-ease-out: ease-out;
+  --app-motion-ease-in-out: ease-in-out;
+  --app-motion-ease-linear: linear;
+  --app-motion-ease-emphatic: cubic-bezier(0.12, 0.78, 0.24, 1);
+  --app-motion-ease-intro: cubic-bezier(0.18, 0.78, 0.24, 1);
+  --app-transition-control:
+    background var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    border-color var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    box-shadow var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    color var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    opacity var(--app-motion-duration-control) var(--app-motion-ease-standard);
+  --app-transition-toggle:
+    background var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    border-color var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    box-shadow var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    opacity var(--app-motion-duration-control) var(--app-motion-ease-standard),
+    transform var(--app-motion-duration-control) var(--app-motion-ease-standard);
+  --app-transition-collapse-enter:
+    grid-template-rows var(--app-motion-duration-collapse) var(--app-motion-ease-out),
+    padding-top var(--app-motion-duration-collapse) var(--app-motion-ease-out);
+  --app-transition-collapse-exit:
+    grid-template-rows var(--app-motion-duration-collapse) var(--app-motion-ease-in),
+    padding-top var(--app-motion-duration-collapse) var(--app-motion-ease-in);
   --app-selection-text-color: hsl(var(--app-background-hsl));
   --app-selection-background-color: hsl(var(--app-primary-hsl) / 0.88);
   --app-scrollbar-track-color: transparent;

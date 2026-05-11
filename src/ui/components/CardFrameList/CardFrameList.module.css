@@ -10,6 +10,7 @@
   box-sizing: border-box;
   padding-top: var(--card-frame-list-leading-spacer, 0rem);
   padding-bottom: var(--card-frame-list-spacer, 0rem);
+  --card-frame-list-enter-stagger: var(--app-motion-duration-collapse);
 }
 
 .item:not(:last-child) {
@@ -32,8 +33,11 @@
 }
 
 .item[data-motion='float'][data-state='entering'] .itemSurface {
-  animation: card-frame-list-enter 800ms ease-out both;
-  animation-delay: calc(var(--card-frame-list-enter-index, 0) * 260ms);
+  animation: card-frame-list-enter var(--app-motion-duration-card-enter) var(--app-motion-ease-out)
+    both;
+  animation-delay: calc(
+    var(--card-frame-list-enter-index, 0) * var(--card-frame-list-enter-stagger)
+  );
 }
 
 .item[data-motion='float'][data-state='visible'] .itemSurface {
@@ -42,7 +46,7 @@
 }
 
 .item[data-motion='float'][data-state='exiting'] .itemSurface {
-  animation: card-frame-list-exit 260ms ease-in both;
+  animation: card-frame-list-exit var(--app-motion-duration-collapse) var(--app-motion-ease-in) both;
 }
 
 .item[data-motion='float'][data-state='exited'] .itemSurface {
@@ -61,7 +65,8 @@
 }
 
 .item[data-motion='collapse'][data-state='entering'] {
-  animation: card-frame-list-expand 260ms ease-out both;
+  animation: card-frame-list-expand var(--app-motion-duration-collapse) var(--app-motion-ease-out)
+    both;
 }
 
 .item[data-motion='collapse'][data-state='entering'] .itemSurface {
@@ -80,7 +85,8 @@
 }
 
 .item[data-motion='collapse'][data-state='exiting'] {
-  animation: card-frame-list-collapse 260ms ease-in both;
+  animation: card-frame-list-collapse var(--app-motion-duration-collapse) var(--app-motion-ease-in)
+    both;
 }
 
 .item[data-motion='collapse'][data-state='exiting'] .itemSurface {

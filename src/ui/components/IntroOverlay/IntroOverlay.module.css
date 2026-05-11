@@ -1,7 +1,7 @@
 .overlay {
   transition-property: opacity, transform;
-  transition-duration: var(--intro-overlay-transition-duration, 220ms);
-  transition-timing-function: ease;
+  transition-duration: var(--intro-overlay-transition-duration, var(--app-motion-duration-panel));
+  transition-timing-function: var(--app-motion-ease-standard);
   will-change: opacity, transform;
 }
 
@@ -22,8 +22,9 @@
 
 .center {
   opacity: 0;
-  animation: intro-overlay-center-in 540ms cubic-bezier(0.18, 0.78, 0.24, 1) forwards;
-  animation-delay: calc(0.08s + var(--intro-start-delay, 0s));
+  animation: intro-overlay-center-in var(--app-motion-duration-intro) var(--app-motion-ease-intro)
+    forwards;
+  animation-delay: calc(var(--app-motion-delay-intro-center) + var(--intro-start-delay, 0s));
 }
 
 .halo {
@@ -33,7 +34,8 @@
     hsl(var(--app-primary-main-hsl) / 0.1) 44%,
     transparent 72%
   );
-  animation: intro-overlay-halo-breathe 4.8s ease-in-out infinite;
+  animation: intro-overlay-halo-breathe var(--app-motion-duration-halo)
+    var(--app-motion-ease-in-out) infinite;
   will-change: opacity, transform;
 }
 
@@ -60,7 +62,8 @@
   opacity: 0.58;
   transform-box: fill-box;
   transform-origin: center;
-  animation: intro-overlay-orbit-rotate 18s linear infinite;
+  animation: intro-overlay-orbit-rotate var(--app-motion-duration-orbit)
+    var(--app-motion-ease-linear) infinite;
   will-change: transform;
 }
 
@@ -69,7 +72,7 @@
   stroke-dasharray: 8 14;
   opacity: 0.42;
   animation-direction: reverse;
-  animation-duration: 14s;
+  animation-duration: var(--app-motion-duration-orbit-inner);
 }
 
 .arm {
@@ -77,7 +80,8 @@
   transform: translate(var(--intro-x), var(--intro-y)) scale(0.84);
   transform-box: fill-box;
   transform-origin: center;
-  animation: intro-overlay-arm-in 560ms cubic-bezier(0.12, 0.78, 0.24, 1) forwards;
+  animation: intro-overlay-arm-in var(--app-motion-duration-intro-arm)
+    var(--app-motion-ease-emphatic) forwards;
   animation-delay: calc(var(--intro-delay) + var(--intro-start-delay, 0s));
   will-change: transform, opacity;
 }
@@ -93,10 +97,11 @@
   transform-box: fill-box;
   transform-origin: center;
   animation:
-    intro-overlay-core-pulse-fade-in 520ms ease-in-out forwards
-      calc(0.62s + var(--intro-start-delay, 0s)),
-    intro-overlay-core-pulse 2.4s ease-in-out infinite calc(0.62s + var(--intro-start-delay, 0s))
-      backwards;
+    intro-overlay-core-pulse-fade-in var(--app-motion-duration-core-fade)
+      var(--app-motion-ease-in-out) forwards
+      calc(var(--app-motion-delay-intro-core) + var(--intro-start-delay, 0s)),
+    intro-overlay-core-pulse var(--app-motion-duration-pulse) var(--app-motion-ease-in-out) infinite
+      calc(var(--app-motion-delay-intro-core) + var(--intro-start-delay, 0s)) backwards;
   will-change: transform, opacity;
 }
 
@@ -107,8 +112,11 @@
 
 .titleGlyph {
   opacity: 0;
-  animation: intro-overlay-title-in 320ms linear forwards;
-  animation-delay: calc(0.32s + var(--intro-title-delay, 0s) + var(--intro-start-delay, 0s));
+  animation: intro-overlay-title-in var(--app-motion-duration-compact) var(--app-motion-ease-linear)
+    forwards;
+  animation-delay: calc(
+    var(--app-motion-duration-compact) + var(--intro-title-delay, 0s) + var(--intro-start-delay, 0s)
+  );
   will-change: opacity, transform;
 }
 
