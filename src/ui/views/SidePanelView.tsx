@@ -424,12 +424,6 @@ export const SidePanelView: Component = () => {
     markAccountEntered(accountId)
   }
 
-  const handleAccountCardExitEnd = (accountId: string): void => {
-    if (pendingDeleteAccountId() === accountId) {
-      completeDeleteAccount(accountId)
-    }
-  }
-
   const handleTopCardEnterEnd = (): void => {
     const account = promotedAccount()
 
@@ -438,6 +432,12 @@ export const SidePanelView: Component = () => {
     }
 
     markAccountEntered(account.id)
+  }
+
+  const handleAccountCardExitEnd = (accountId: string): void => {
+    if (pendingDeleteAccountId() === accountId) {
+      completeDeleteAccount(accountId)
+    }
   }
 
   const finishCancelAdding = (): void => {
