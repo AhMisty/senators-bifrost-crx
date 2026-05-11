@@ -4,7 +4,12 @@ import { For, Show, createSignal, onCleanup, onMount, type Component } from 'sol
 import { createStore, reconcile } from 'solid-js/store'
 
 import { AccountCard } from '@/ui/components/AccountCard'
-import { CardFrameList, CardFrameListItem } from '@/ui/components/CardFrameList'
+import {
+  CardFrameList,
+  CardFrameListItem,
+  type CardFrameListItemControlledState,
+  type CardFrameListItemMotion,
+} from '@/ui/components/CardFrameList'
 import { ControlButton } from '@/ui/components/FormControls'
 import {
   accountStorageAreaName,
@@ -30,6 +35,11 @@ const defaultAccountDraft: AccountFormDraft = {
   token: '',
 }
 
+type AccountCardAnimation = {
+  motion: CardFrameListItemMotion
+  state: CardFrameListItemControlledState
+}
+
 const sendAccountMessage = async (message: AccountMessage): Promise<AccountMessageResult> => {
   if (typeof chrome === 'undefined') {
     throw new Error('当前环境无法访问扩展服务')
@@ -51,6 +61,7 @@ const sendAccountMessage = async (message: AccountMessage): Promise<AccountMessa
 export const SidePanelView: Component = () => {
   const [accountState, setAccountState] = createStore<AccountState>(defaultAccountState)
   const [draft, setDraft] = createSignal<AccountFormDraft>(defaultAccountDraft)
+  const [expandedAccountIds, setExpandedAccountIds] = createSignal(new Set<string>())
   const [visiblePasswordIds, setVisiblePasswordIds] = createSignal(new Set<string>())
   const [isReady, setIsReady] = createSignal(false)
   const [isAdding, setIsAdding] = createSignal(false)
@@ -60,11 +71,12 @@ export const SidePanelView: Component = () => {
   const [isRandomizingIp, setIsRandomizingIp] = createSignal(false)
   const [usingAccountId, setUsingAccountId] = createSignal<string | null>(null)
   const [promotedAccountId, setPromotedAccountId] = createSignal<string | null>(null)
-  const [enteredAccountIdsVersion, setEnteredAccountIdsVersion] = createSignal(0)
   const [pendingDeleteAccountId, setPendingDeleteAccountId] = createSignal<string | null>(null)
   const [shouldAnimateCards, setShouldAnimateCards] = createSignal(true)
-  const enteredAccountIds = new Set<string>()
+  const [enteredAccountIds, setEnteredAccountIds] = createSignal(new Set<string>())
   const initialAccountIds = new Set<string>()
+  let createdAccountCollapseFrame1: number | undefined
+  let createdAccountCollapseFrame2: number | undefined
   let randomIpRequestId = 0
 
   const accounts = (): AccountRecord[] => accountState.accounts
@@ -84,64 +96,126 @@ export const SidePanelView: Component = () => {
   }
   const hasTopCard = (): boolean => isAdding() || isAddingExiting() || promotedAccount() !== null
   const isUsePending = (): boolean => usingAccountId() !== null
+  const isAccountExpanded = (accountId: string): boolean => expandedAccountIds().has(accountId)
+  const retainAccountIds = (currentIds: Set<string>, validIds: Set<string>): Set<string> => {
+    let nextIds: Set<string> | undefined
+
+    currentIds.forEach((accountId) => {
+      if (validIds.has(accountId)) {
+        return
+      }
+
+      if (!nextIds) {
+        nextIds = new Set(currentIds)
+      }
+
+      nextIds.delete(accountId)
+    })
+
+    return nextIds ?? currentIds
+  }
+  const syncAnimatedAccountIds = (state: AccountState): void => {
+    const validAccountIds = new Set(state.accounts.map((account) => account.id))
+
+    setExpandedAccountIds((currentIds) => retainAccountIds(currentIds, validAccountIds))
+    setEnteredAccountIds((currentIds) => retainAccountIds(currentIds, validAccountIds))
+  }
+  const clearCreatedAccountCollapseFrames = (): void => {
+    if (createdAccountCollapseFrame1 !== undefined) {
+      cancelAnimationFrame(createdAccountCollapseFrame1)
+      createdAccountCollapseFrame1 = undefined
+    }
+
+    if (createdAccountCollapseFrame2 !== undefined) {
+      cancelAnimationFrame(createdAccountCollapseFrame2)
+      createdAccountCollapseFrame2 = undefined
+    }
+  }
+  const scheduleCreatedAccountCollapse = (accountId: string): void => {
+    clearCreatedAccountCollapseFrames()
+
+    setExpandedAccountIds((currentIds) => {
+      const nextIds = new Set(currentIds)
+      nextIds.add(accountId)
+      return nextIds
+    })
+
+    createdAccountCollapseFrame1 = requestAnimationFrame(() => {
+      createdAccountCollapseFrame2 = requestAnimationFrame(() => {
+        setExpandedAccountIds((currentIds) => {
+          if (!currentIds.has(accountId)) {
+            return currentIds
+          }
+
+          const nextIds = new Set(currentIds)
+          nextIds.delete(accountId)
+          return nextIds
+        })
+        createdAccountCollapseFrame1 = undefined
+        createdAccountCollapseFrame2 = undefined
+      })
+    })
+  }
+  const toggleAccountExpanded = (accountId: string): void => {
+    setExpandedAccountIds((currentIds) => {
+      const nextIds = new Set(currentIds)
+
+      if (nextIds.has(accountId)) {
+        nextIds.delete(accountId)
+      } else {
+        nextIds.add(accountId)
+      }
+
+      return nextIds
+    })
+  }
   const markAccountEntered = (accountId: string): void => {
-    if (enteredAccountIds.has(accountId)) {
-      return
-    }
+    setEnteredAccountIds((currentIds) => {
+      if (currentIds.has(accountId)) {
+        return currentIds
+      }
 
-    enteredAccountIds.add(accountId)
-    setEnteredAccountIdsVersion((version) => version + 1)
+      const nextIds = new Set(currentIds)
+      nextIds.add(accountId)
+      return nextIds
+    })
   }
-  const accountCardState = (accountId: string): 'entering' | 'visible' | 'exiting' => {
-    enteredAccountIdsVersion()
-
+  const getAccountCardAnimation = (accountId: string): AccountCardAnimation => {
     if (!shouldAnimateCards()) {
-      return 'visible'
+      return { motion: 'collapse', state: 'visible' }
     }
 
     if (pendingDeleteAccountId() === accountId) {
-      return 'exiting'
+      return { motion: 'collapse', state: 'exiting' }
     }
 
-    return enteredAccountIds.has(accountId) ? 'visible' : 'entering'
-  }
-  const accountCardMotion = (accountId: string): 'float' | 'collapse' => {
-    enteredAccountIdsVersion()
+    const hasEntered = enteredAccountIds().has(accountId)
 
-    if (pendingDeleteAccountId() === accountId) {
-      return 'collapse'
+    return {
+      motion: initialAccountIds.has(accountId) && !hasEntered ? 'float' : 'collapse',
+      state: hasEntered ? 'visible' : 'entering',
     }
-
-    return initialAccountIds.has(accountId) && !enteredAccountIds.has(accountId)
-      ? 'float'
-      : 'collapse'
   }
-  const topCardState = (): 'entering' | 'visible' | 'exiting' | undefined => {
-    enteredAccountIdsVersion()
-
+  const getTopCardAnimation = (): AccountCardAnimation => {
     if (!shouldAnimateCards()) {
-      return 'visible'
+      return { motion: 'collapse', state: 'visible' }
     }
 
     if (isAddingExiting()) {
-      return 'exiting'
+      return { motion: 'collapse', state: 'exiting' }
     }
 
     const account = promotedAccount()
 
     if (account) {
-      return accountCardState(account.id)
+      return getAccountCardAnimation(account.id)
     }
 
-    return undefined
-  }
-  const topCardMotion = (): 'float' | 'collapse' => {
-    const account = promotedAccount()
-
-    return account ? accountCardMotion(account.id) : 'collapse'
+    return { motion: 'collapse', state: 'entering' }
   }
   const replaceAccountState = (state: AccountState): void => {
     setAccountState(reconcile(state, { key: 'id' }))
+    syncAnimatedAccountIds(state)
 
     if (
       promotedAccountId() &&
@@ -272,6 +346,7 @@ export const SidePanelView: Component = () => {
           if (createdAccount) {
             markAccountEntered(createdAccount.id)
             setPromotedAccountId(createdAccount.id)
+            scheduleCreatedAccountCollapse(createdAccount.id)
           }
         }
 
@@ -453,7 +528,10 @@ export const SidePanelView: Component = () => {
     }
 
     chrome.storage.onChanged.addListener(syncStoredAccountState)
-    onCleanup(() => chrome.storage.onChanged.removeListener(syncStoredAccountState))
+    onCleanup(() => {
+      chrome.storage.onChanged.removeListener(syncStoredAccountState)
+      clearCreatedAccountCollapseFrames()
+    })
   })
 
   return (
@@ -476,75 +554,89 @@ export const SidePanelView: Component = () => {
 
         <CardFrameList class={styles.cardList}>
           <Show when={hasTopCard()}>
-            <CardFrameListItem
-              enterIndex={1}
-              motion={topCardMotion()}
-              state={topCardState()}
-              onEnterEnd={handleTopCardEnterEnd}
-              onExitEnd={handleTopCardExitEnd}
-            >
-              <Show
-                when={isAdding()}
-                fallback={
-                  <Show when={promotedAccount()}>
-                    {(account) => (
-                      <AccountCard
-                        account={account()}
-                        isActive={accountState.activeAccountId === account().id}
-                        isDeletePending={pendingDeleteAccountId() === account().id}
-                        isPasswordVisible={visiblePasswordIds().has(account().id)}
-                        isUsePending={isUsePending()}
-                        isUsing={usingAccountId() === account().id}
-                        onDeleteStart={requestDeleteAccount}
-                        onRandomIp={getRandomIp}
-                        onTogglePassword={togglePassword}
-                        onUpdate={updateAccount}
-                        onUse={useAccount}
-                      />
-                    )}
+            {() => {
+              const topCardAnimation = getTopCardAnimation()
+
+              return (
+                <CardFrameListItem
+                  enterIndex={1}
+                  motion={topCardAnimation.motion}
+                  state={topCardAnimation.state}
+                  onEnterEnd={handleTopCardEnterEnd}
+                  onExitEnd={handleTopCardExitEnd}
+                >
+                  <Show
+                    when={isAdding()}
+                    fallback={
+                      <Show when={promotedAccount()}>
+                        {(account) => (
+                          <AccountCard
+                            account={account()}
+                            isExpanded={isAccountExpanded(account().id)}
+                            isActive={accountState.activeAccountId === account().id}
+                            isDeletePending={pendingDeleteAccountId() === account().id}
+                            isPasswordVisible={visiblePasswordIds().has(account().id)}
+                            isUsePending={isUsePending()}
+                            isUsing={usingAccountId() === account().id}
+                            onDeleteStart={requestDeleteAccount}
+                            onRandomIp={getRandomIp}
+                            onToggleExpanded={toggleAccountExpanded}
+                            onTogglePassword={togglePassword}
+                            onUpdate={updateAccount}
+                            onUse={useAccount}
+                          />
+                        )}
+                      </Show>
+                    }
+                  >
+                    <AccountCard
+                      mode="create"
+                      draft={draft()}
+                      isExiting={isAddingExiting()}
+                      isRandomizingIp={isRandomizingIp()}
+                      isSaving={isSaving()}
+                      onCancel={cancelAdding}
+                      onChange={updateDraft}
+                      onRandomIp={getRandomIp}
+                      onSubmit={submitAccount}
+                    />
                   </Show>
-                }
-              >
-                <AccountCard
-                  mode="create"
-                  draft={draft()}
-                  isExiting={isAddingExiting()}
-                  isRandomizingIp={isRandomizingIp()}
-                  isSaving={isSaving()}
-                  onCancel={cancelAdding}
-                  onChange={updateDraft}
-                  onRandomIp={getRandomIp}
-                  onSubmit={submitAccount}
-                />
-              </Show>
-            </CardFrameListItem>
+                </CardFrameListItem>
+              )
+            }}
           </Show>
 
           <Show when={listedAccounts().length > 0}>
             <For each={listedAccounts()}>
-              {(account, index) => (
-                <CardFrameListItem
-                  enterIndex={index() + (hasTopCard() ? 2 : 1)}
-                  motion={accountCardMotion(account.id)}
-                  state={accountCardState(account.id)}
-                  onEnterEnd={() => handleAccountCardEnterEnd(account.id)}
-                  onExitEnd={() => handleAccountCardExitEnd(account.id)}
-                >
-                  <AccountCard
-                    account={account}
-                    isActive={accountState.activeAccountId === account.id}
-                    isDeletePending={pendingDeleteAccountId() === account.id}
-                    isPasswordVisible={visiblePasswordIds().has(account.id)}
-                    isUsePending={isUsePending()}
-                    isUsing={usingAccountId() === account.id}
-                    onDeleteStart={requestDeleteAccount}
-                    onRandomIp={getRandomIp}
-                    onTogglePassword={togglePassword}
-                    onUpdate={updateAccount}
-                    onUse={useAccount}
-                  />
-                </CardFrameListItem>
-              )}
+              {(account, index) => {
+                const accountAnimation = getAccountCardAnimation(account.id)
+
+                return (
+                  <CardFrameListItem
+                    enterIndex={index() + (hasTopCard() ? 2 : 1)}
+                    motion={accountAnimation.motion}
+                    state={accountAnimation.state}
+                    onEnterEnd={() => handleAccountCardEnterEnd(account.id)}
+                    onExitEnd={() => handleAccountCardExitEnd(account.id)}
+                  >
+                    <AccountCard
+                      account={account}
+                      isExpanded={isAccountExpanded(account.id)}
+                      isActive={accountState.activeAccountId === account.id}
+                      isDeletePending={pendingDeleteAccountId() === account.id}
+                      isPasswordVisible={visiblePasswordIds().has(account.id)}
+                      isUsePending={isUsePending()}
+                      isUsing={usingAccountId() === account.id}
+                      onDeleteStart={requestDeleteAccount}
+                      onRandomIp={getRandomIp}
+                      onToggleExpanded={toggleAccountExpanded}
+                      onTogglePassword={togglePassword}
+                      onUpdate={updateAccount}
+                      onUse={useAccount}
+                    />
+                  </CardFrameListItem>
+                )
+              }}
             </For>
           </Show>
         </CardFrameList>

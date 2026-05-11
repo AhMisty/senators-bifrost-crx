@@ -27,6 +27,7 @@ type AccountCardCreateProps = {
 type AccountCardStoredProps = {
   mode?: 'stored'
   account: AccountRecord
+  isExpanded: boolean
   isActive: boolean
   isDeletePending: boolean
   isPasswordVisible: boolean
@@ -34,6 +35,7 @@ type AccountCardStoredProps = {
   isUsing: boolean
   onDeleteStart: (accountId: string) => void
   onRandomIp: () => Promise<string | null>
+  onToggleExpanded: (accountId: string) => void
   onTogglePassword: (accountId: string) => void
   onUpdate: (accountId: string, input: UpdateAccountInput) => Promise<void>
   onUse: (accountId: string) => void
@@ -159,6 +161,20 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
     props.mode === 'create'
       ? props.isSaving || props.isExiting || isIpBusy()
       : isSavingEdit() || props.isDeletePending || isRandomizingIp()
+  const isBodyExpanded = (): boolean => {
+    if (props.mode === 'create') {
+      return true
+    }
+
+    return isEditing() || props.isExpanded
+  }
+  const canToggleBody = (): boolean => {
+    if (props.mode === 'create' || isEditing()) {
+      return false
+    }
+
+    return !props.isUsePending && !isCardBusy()
+  }
   const cardTitle = (): string => storedAccount()?.username || '新账号'
   const isFormFieldWarning = (field: AccountFormField): boolean =>
     hasValidationAttempted() && isAccountDraftFieldInvalid(formDraft(), field)
@@ -329,6 +345,23 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
     props.onDeleteStart(props.account.id)
   }
 
+  const toggleBody = (): void => {
+    if (!canToggleBody()) {
+      return
+    }
+
+    props.onToggleExpanded(props.account.id)
+  }
+
+  const handleHeaderKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return
+    }
+
+    event.preventDefault()
+    toggleBody()
+  }
+
   const renderBadges = () => {
     if (props.mode === 'create') {
       return null
@@ -443,7 +476,15 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
 
   return (
     <form class={styles.cardContent} aria-busy={isCardBusy()} onSubmit={submitCard}>
-      <header class={styles.accountHeader}>
+      <header
+        class={styles.accountHeader}
+        role={props.mode === 'create' ? undefined : 'button'}
+        tabIndex={canToggleBody() ? 0 : undefined}
+        aria-expanded={props.mode === 'create' ? undefined : isBodyExpanded()}
+        data-clickable={canToggleBody() ? 'true' : 'false'}
+        onClick={toggleBody}
+        onKeyDown={handleHeaderKeyDown}
+      >
         <div class={styles.accountHeading}>
           <h2 class={styles.accountName}>{cardTitle()}</h2>
         </div>
@@ -451,128 +492,137 @@ export const AccountCard: Component<AccountCardProps> = (props) => {
         {renderBadges()}
       </header>
 
-      <dl class={styles.detailList}>
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>宇宙</dt>
-          <dd class={styles.detailValue}>
-            <Show
-              when={isFormMode()}
-              fallback={<span class={styles.detailText}>{storedAccount()?.universe}</span>}
-            >
-              <ControlInput
-                class={styles.detailInput}
-                type="number"
-                min="1"
-                step="1"
-                value={formDraft().universe}
-                disabled={isFormSaving()}
-                aria-label="宇宙"
-                onInput={(event) => updateCurrentDraft({ universe: event.currentTarget.value })}
-              />
-            </Show>
-          </dd>
-        </div>
+      <div
+        class={styles.accountBody}
+        data-expanded={isBodyExpanded() ? 'true' : 'false'}
+        aria-hidden={isBodyExpanded() ? undefined : 'true'}
+        inert={isBodyExpanded() ? undefined : true}
+      >
+        <div class={styles.accountBodyInner}>
+          <dl class={styles.detailList}>
+            <div class={styles.detail}>
+              <dt class={styles.detailLabel}>宇宙</dt>
+              <dd class={styles.detailValue}>
+                <Show
+                  when={isFormMode()}
+                  fallback={<span class={styles.detailText}>{storedAccount()?.universe}</span>}
+                >
+                  <ControlInput
+                    class={styles.detailInput}
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={formDraft().universe}
+                    disabled={isFormSaving()}
+                    aria-label="宇宙"
+                    onInput={(event) => updateCurrentDraft({ universe: event.currentTarget.value })}
+                  />
+                </Show>
+              </dd>
+            </div>
 
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>用户名</dt>
-          <dd class={styles.detailValue}>
-            <Show
-              when={isFormMode()}
-              fallback={<span class={styles.detailText}>{storedAccount()?.username}</span>}
-            >
-              <ControlInput
-                class={styles.detailInput}
-                tone={getFieldTone('username')}
-                type="text"
-                autocomplete="username"
-                value={formDraft().username}
-                disabled={isFormSaving()}
-                aria-label="用户名"
-                onInput={(event) => updateCurrentDraft({ username: event.currentTarget.value })}
-              />
-            </Show>
-          </dd>
-        </div>
+            <div class={styles.detail}>
+              <dt class={styles.detailLabel}>用户名</dt>
+              <dd class={styles.detailValue}>
+                <Show
+                  when={isFormMode()}
+                  fallback={<span class={styles.detailText}>{storedAccount()?.username}</span>}
+                >
+                  <ControlInput
+                    class={styles.detailInput}
+                    tone={getFieldTone('username')}
+                    type="text"
+                    autocomplete="username"
+                    value={formDraft().username}
+                    disabled={isFormSaving()}
+                    aria-label="用户名"
+                    onInput={(event) => updateCurrentDraft({ username: event.currentTarget.value })}
+                  />
+                </Show>
+              </dd>
+            </div>
 
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>密码</dt>
-          <dd class={`${styles.detailValue} ${isFormMode() ? '' : styles.secretValue}`}>
-            <Show
-              when={isFormMode()}
-              fallback={
-                <>
-                  <span class={`${styles.detailText} ${styles.secretText}`}>
-                    {displayedPassword()}
-                  </span>
-                  <Show when={props.mode !== 'create'}>
+            <div class={styles.detail}>
+              <dt class={styles.detailLabel}>密码</dt>
+              <dd class={`${styles.detailValue} ${isFormMode() ? '' : styles.secretValue}`}>
+                <Show
+                  when={isFormMode()}
+                  fallback={
+                    <>
+                      <span class={`${styles.detailText} ${styles.secretText}`}>
+                        {displayedPassword()}
+                      </span>
+                      <Show when={props.mode !== 'create'}>
+                        <button
+                          class={styles.iconButton}
+                          type="button"
+                          aria-label={props.mode !== 'create' && props.isPasswordVisible ? '隐藏密码' : '显示密码'}
+                          disabled={isCardBusy()}
+                          onClick={() => {
+                            if (props.mode !== 'create') {
+                              props.onTogglePassword(props.account.id)
+                            }
+                          }}
+                        >
+                          <EyeIcon isOpen={props.mode !== 'create' && props.isPasswordVisible} />
+                        </button>
+                      </Show>
+                    </>
+                  }
+                >
+                  <ControlInput
+                    class={styles.detailInput}
+                    tone={getFieldTone('password')}
+                    type="password"
+                    autocomplete="current-password"
+                    value={formDraft().password}
+                    disabled={isFormSaving()}
+                    aria-label="密码"
+                    onInput={(event) => updateCurrentDraft({ password: event.currentTarget.value })}
+                  />
+                </Show>
+              </dd>
+            </div>
+
+            <div class={styles.detail}>
+              <dt class={styles.detailLabel}>IP</dt>
+              <dd class={`${styles.detailValue} ${isFormMode() ? styles.ipEditor : ''}`}>
+                <Show
+                  when={isFormMode()}
+                  fallback={<span class={styles.detailText}>{storedAccount()?.ip}</span>}
+                >
+                  <>
+                    <ControlInput
+                      class={styles.detailInput}
+                      tone={getFieldTone('ip')}
+                      type="text"
+                      inputmode="numeric"
+                      value={formDraft().ip}
+                      disabled={isFormSaving()}
+                      aria-label="IP"
+                      onInput={(event) => updateCurrentDraft({ ip: event.currentTarget.value })}
+                    />
                     <button
                       class={styles.iconButton}
                       type="button"
-                      aria-label={props.mode !== 'create' && props.isPasswordVisible ? '隐藏密码' : '显示密码'}
-                      disabled={isCardBusy()}
-                      onClick={() => {
-                        if (props.mode !== 'create') {
-                          props.onTogglePassword(props.account.id)
-                        }
-                      }}
+                      aria-label="随机 IP"
+                      title="随机 IP"
+                      disabled={isFormSaving() || isIpBusy()}
+                      onClick={randomizeIp}
                     >
-                      <EyeIcon isOpen={props.mode !== 'create' && props.isPasswordVisible} />
+                      <DiceIcon class={styles.icon} />
                     </button>
-                  </Show>
-                </>
-              }
-            >
-              <ControlInput
-                class={styles.detailInput}
-                tone={getFieldTone('password')}
-                type="password"
-                autocomplete="current-password"
-                value={formDraft().password}
-                disabled={isFormSaving()}
-                aria-label="密码"
-                onInput={(event) => updateCurrentDraft({ password: event.currentTarget.value })}
-              />
-            </Show>
-          </dd>
+                  </>
+                </Show>
+              </dd>
+            </div>
+
+            {renderTokenRow()}
+          </dl>
+
+          <footer class={styles.cardActions}>{renderActions()}</footer>
         </div>
-
-        <div class={styles.detail}>
-          <dt class={styles.detailLabel}>IP</dt>
-          <dd class={`${styles.detailValue} ${isFormMode() ? styles.ipEditor : ''}`}>
-            <Show
-              when={isFormMode()}
-              fallback={<span class={styles.detailText}>{storedAccount()?.ip}</span>}
-            >
-              <>
-                <ControlInput
-                  class={styles.detailInput}
-                  tone={getFieldTone('ip')}
-                  type="text"
-                  inputmode="numeric"
-                  value={formDraft().ip}
-                  disabled={isFormSaving()}
-                  aria-label="IP"
-                  onInput={(event) => updateCurrentDraft({ ip: event.currentTarget.value })}
-                />
-                <button
-                  class={styles.iconButton}
-                  type="button"
-                  aria-label="随机 IP"
-                  title="随机 IP"
-                  disabled={isFormSaving() || isIpBusy()}
-                  onClick={randomizeIp}
-                >
-                  <DiceIcon class={styles.icon} />
-                </button>
-              </>
-            </Show>
-          </dd>
-        </div>
-
-        {renderTokenRow()}
-      </dl>
-
-      <footer class={styles.cardActions}>{renderActions()}</footer>
+      </div>
     </form>
   )
 }

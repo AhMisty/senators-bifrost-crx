@@ -24,7 +24,6 @@ type CardFrameListProps = {
 type CardFrameListItemProps = {
   children: JSX.Element
   enterIndex?: number
-  animate?: boolean
   motion?: CardFrameListItemMotion
   state?: CardFrameListItemControlledState
   class?: string
@@ -32,16 +31,10 @@ type CardFrameListItemProps = {
   onExitEnd?: () => void
 }
 
-type CardFrameListMotionItemProps = CardFrameListItemProps & {
-  surfaceClass?: string
-}
-
-export const CardFrameListMotionItem: Component<CardFrameListMotionItemProps> = (props) => {
+export const CardFrameListMotionItem: Component<CardFrameListItemProps> = (props) => {
   let lastControlledState: CardFrameListItemControlledState | undefined = props.state
   const motion = (): CardFrameListItemMotion => props.motion ?? 'float'
-  const [state, setState] = createSignal<CardFrameListItemState>(
-    props.state ?? ((props.animate ?? true) ? 'entering' : 'visible'),
-  )
+  const [state, setState] = createSignal<CardFrameListItemState>(props.state ?? 'entering')
   const enterIndex = props.enterIndex ?? 0
 
   const completeExit = (): void => {
@@ -114,10 +107,7 @@ export const CardFrameListMotionItem: Component<CardFrameListMotionItemProps> = 
       onAnimationEnd={handleRootAnimationEnd}
       style={{ '--card-frame-list-enter-index': `${enterIndex}` }}
     >
-      <div
-        class={`${styles.itemSurface} ${props.surfaceClass ?? ''}`}
-        onAnimationEnd={handleSurfaceAnimationEnd}
-      >
+      <div class={styles.itemSurface} onAnimationEnd={handleSurfaceAnimationEnd}>
         {props.children}
       </div>
     </div>
@@ -126,7 +116,6 @@ export const CardFrameListMotionItem: Component<CardFrameListMotionItemProps> = 
 
 export const CardFrameListItem: Component<CardFrameListItemProps> = (props) => (
   <CardFrameListMotionItem
-    animate={props.animate}
     class={props.class}
     enterIndex={props.enterIndex}
     motion={props.motion}
